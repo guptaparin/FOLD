@@ -22,3 +22,5 @@
 | 18 | **Turn-overs sampled half a frame off 90°** | Director critic: the sheet vanished edge-on for a frame at 233/395/426 | Motion blur (costly in this renderer) |
 | 19 | **Swan framed with headroom and a closer lake push-in; caption moved left of the moon, on screen 2.3 s** | Director critic: swan didn't read, caption under 1.8 s and fighting the moon | — |
 | 20 | **End card builds in 0.75 s, URL held ~1.9 s; dioramas switch exactly on the 720 cut** | Director critic: 1.6 s URL hold; four stray frames before the shelf cut | — |
+| 21 | **Short folds ease the flap's projected travel (cos θ), not its angle** | Sign-off critic: seen from above, an angle ease sits still then whips past 90° in one frame | Longer pulls (break the beat grid) |
+| 22 | **Hand enters opaque from beyond the frame edge** | A fading multi-part hand ghosts (overlapping spheres show through) | Fade-in over the paper |

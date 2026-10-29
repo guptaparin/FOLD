@@ -190,9 +190,14 @@ function foldState(model: string, n: number): { k: number; theta: number; fold: 
       // lands exactly edge-on (an invisible sheet).
       const u = range(n + (f.kind === 'flip' ? 0.5 : 0), f.pullStart, f.snap);
       const target = seqs[model].snaps[i].prep.target;
-      // Short folds use a gentler ease so the flap's speed isn't bunched mid-arc.
-      const ease = f.snap - f.pullStart < 20 ? smooth(u) : inOut(u);
-      return { k: i, theta: target * ease, fold: f, u };
+      // Short folds are seen from above: ease the flap's *projected* travel
+      // (cos θ), not its angle, so it doesn't sit still and then whip past 90°.
+      if (f.snap - f.pullStart < 20 && f.kind !== 'flip') {
+        const c = Math.cos(target);
+        const theta = Math.acos(Math.max(-1, Math.min(1, 1 - (1 - c) * smooth(u))));
+        return { k: i, theta: Math.sign(target) * theta, fold: f, u };
+      }
+      return { k: i, theta: target * inOut(u), fold: f, u };
     }
   }
   return { k: fl.length, theta: 0, fold: null, u: 1 };
@@ -302,7 +307,7 @@ CHAPTERS.forEach((ch, i) => {
   o.position.copy(st.pivot).add(new Vector3(0, 0.01, 0));
   o.add(q.view.root);
   holder.add(o);
-  holder.position.set(-0.23 + i * 0.125, LAYOUT.deskY, -0.52 - Math.abs(i - 2.5) * 0.025);
+  holder.position.set(-0.2 + i * 0.125, LAYOUT.deskY, -0.52 - Math.abs(i - 2.5) * 0.025);
   holder.rotation.y = 0.35 - i * 0.12;
   shelf.add(holder);
   keepsakes.push(holder);
@@ -420,7 +425,7 @@ const typeEls = T.type.map((t) => {
   el.innerHTML = `<span class="plate">${words.map((w) => `<span class="w" style="display:inline-block">${w}</span>`).join(' ')}</span>`;
   const size = t.where === 'skyL' ? 58 : t.where.startsWith('sky') ? 66 : 72;
   el.style.fontSize = `${size}px`;
-  el.style.top = { sky: '12%', skyL: '12%', sky2: '21%', crease: '64%' }[t.where as string] ?? '72%';
+  el.style.top = { sky: '12%', skyL: '8.5%', sky2: '21%', crease: '64%' }[t.where as string] ?? '72%';
   if (t.text.endsWith('hands.')) el.style.fontStyle = 'italic';
   if (t.where === 'skyL') {
     // Keep clear of the moon, which crosses the top-centre as the camera tilts.
@@ -721,7 +726,7 @@ function step(n: number): void {
           if (n < f.pinch) {
             // Travel from the last crease to this handle along an arc.
             const k = smooth(range(n, start, f.pinch));
-            const a = prev ? handlePointStation(fox, fox.snaps[i - 1].prep, fox.snaps[i - 1].prep.target, fox.snaps[i - 1].sheet, 0.002) : BOARD_C.clone().add(V(0.16, 0.025, 0.03)); // enter low from the side, never near the lens
+            const a = prev ? handlePointStation(fox, fox.snaps[i - 1].prep, fox.snaps[i - 1].prep.target, fox.snaps[i - 1].sheet, 0.002) : BOARD_C.clone().add(V(0.6, 0.03, 0.05)); // enter low from beyond the frame edge, never near the lens
             const b = handlePointStation(fox, sn.prep, 0, sn.sheet, 0.002);
             p = a.lerp(b, k);
             p.y += Math.sin(k * Math.PI) * 0.03;
@@ -742,7 +747,8 @@ function step(n: number): void {
       if (p) {
         // Flatter wrist from overhead, so it never reads as a blob end-on.
         placeHand(p, pinch, n, 0.15, -0.3);
-        hand.setOpacity(n > 368 ? 1 - smooth(range(n, 368, 374)) : smooth(range(n, 230, 238)));
+        // Opaque from the moment it can be seen (a fading multi-part hand ghosts).
+        hand.setOpacity(n > 368 ? 1 - smooth(range(n, 368, 374)) : n >= 236 ? 1 : 0);
       }
     } else {
       // Unfold the fox flat, then turn over into the swan's sheet.
