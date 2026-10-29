@@ -190,7 +190,9 @@ function foldState(model: string, n: number): { k: number; theta: number; fold: 
       // lands exactly edge-on (an invisible sheet).
       const u = range(n + (f.kind === 'flip' ? 0.5 : 0), f.pullStart, f.snap);
       const target = seqs[model].snaps[i].prep.target;
-      return { k: i, theta: target * inOut(u), fold: f, u };
+      // Short folds use a gentler ease so the flap's speed isn't bunched mid-arc.
+      const ease = f.snap - f.pullStart < 20 ? smooth(u) : inOut(u);
+      return { k: i, theta: target * ease, fold: f, u };
     }
   }
   return { k: fl.length, theta: 0, fold: null, u: 1 };
@@ -300,7 +302,7 @@ CHAPTERS.forEach((ch, i) => {
   o.position.copy(st.pivot).add(new Vector3(0, 0.01, 0));
   o.add(q.view.root);
   holder.add(o);
-  holder.position.set(-0.26 + i * 0.13, LAYOUT.deskY, -0.52 - Math.abs(i - 2.5) * 0.025);
+  holder.position.set(-0.23 + i * 0.125, LAYOUT.deskY, -0.52 - Math.abs(i - 2.5) * 0.025);
   holder.rotation.y = 0.35 - i * 0.12;
   shelf.add(holder);
   keepsakes.push(holder);
@@ -416,14 +418,14 @@ const typeEls = T.type.map((t) => {
   el.className = 'type';
   const words = t.text.split(' ');
   el.innerHTML = `<span class="plate">${words.map((w) => `<span class="w" style="display:inline-block">${w}</span>`).join(' ')}</span>`;
-  const size = t.where.startsWith('sky') ? 66 : 72;
+  const size = t.where === 'skyL' ? 58 : t.where.startsWith('sky') ? 66 : 72;
   el.style.fontSize = `${size}px`;
   el.style.top = { sky: '12%', skyL: '12%', sky2: '21%', crease: '64%' }[t.where as string] ?? '72%';
   if (t.text.endsWith('hands.')) el.style.fontStyle = 'italic';
   if (t.where === 'skyL') {
     // Keep clear of the moon, which crosses the top-centre as the camera tilts.
     el.style.textAlign = 'left';
-    el.style.paddingLeft = '8%';
+    el.style.paddingLeft = '5%';
   }
   typesEl.appendChild(el);
   return { el, t, words: [...el.querySelectorAll<HTMLSpanElement>('.w')] };
@@ -488,7 +490,8 @@ const endParts = ['.mark', '.word', '.tag', '.made', '.url'].map((s) => endEl.qu
 function updateEnd(n: number): void {
   const [w0, w1] = T.wipe;
   // Lantern light fills the frame, then opens onto the card.
-  const f = n < w0 ? 0 : n < 880 ? smooth(range(n, w0, 880)) : 1 - smooth(range(n, 880, w1));
+  // Hold the light at full until the card is opaque underneath it: no brightness pump.
+  const f = n < w0 ? 0 : n < 890 ? smooth(range(n, w0, 880)) : 1 - smooth(range(n, 890, w1 + 4));
   flashEl.style.opacity = String(f);
   const vis = n >= 878;
   endEl.style.opacity = vis ? String(smooth(range(n, 878, 890))) : '0';
@@ -717,7 +720,7 @@ function step(n: number): void {
           const sn = fox.snaps[i];
           if (n < f.pinch) {
             // Travel from the last crease to this handle along an arc.
-            const k = inOut(range(n, start, f.pinch));
+            const k = smooth(range(n, start, f.pinch));
             const a = prev ? handlePointStation(fox, fox.snaps[i - 1].prep, fox.snaps[i - 1].prep.target, fox.snaps[i - 1].sheet, 0.002) : BOARD_C.clone().add(V(0.16, 0.025, 0.03)); // enter low from the side, never near the lens
             const b = handlePointStation(fox, sn.prep, 0, sn.sheet, 0.002);
             p = a.lerp(b, k);
@@ -876,11 +879,11 @@ function shoot(n: number): void {
     // exactly where the lake shot picks up.
     const up = inOut(range(n, 400, 418));
     const dn = inOut(range(n, 448, 480));
-    setCam(overhead(mix(mix(0.39, 0.47, up), 0.47, dn), 0, 0), BOARD_C, mix(38, 36, dn), n, 0.5);
+    setCam(overhead(mix(mix(0.39, 0.5, up), 0.5, dn), 0, 0), BOARD_C, mix(38, 36, dn), n, 0.5);
   } else if (n < 560) {
     // Rise and turn to watch the swan glide into the lake diorama.
     const k = inOut(range(n, 482, 552));
-    const pos = lerpV(overhead(0.47), V(0.075, -0.29, -0.43), k);
+    const pos = lerpV(overhead(0.5), V(0.075, -0.29, -0.43), k);
     const look = lerpV(BOARD_C, V(-0.03, -0.445, -0.84), k);
     setCam(pos, look, mix(36, 38, k), n);
   } else if (n < 640) {

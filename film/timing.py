@@ -43,8 +43,8 @@ fold("tent", 0, 40, 46, 120)
 FOX_KINDS = ["fold", "fold", "fold", "fold", "fold", "flip"]
 for i in range(6):
     snap = 260 + i * BEAT
-    # A 14-frame pull keeps the flap (and the hand riding it) from whipping past the lens.
-    fold("fox", i, snap - 15, snap - 14, snap, True, FOX_KINDS[i])
+    # A 12-frame pull (gentle ease) with 7 frames for the hand to travel keeps the flap (and the hand riding it) from whipping past the lens.
+    fold("fox", i, snap - 13, snap - 12, snap, True, FOX_KINDS[i])
 
 # Swan flurry: seven folds, one per half-beat; the hand steps back.
 SWAN_KINDS = ["fold", "fold", "flip", "fold", "fold", "fold", "fold"]
