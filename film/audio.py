@@ -51,9 +51,8 @@ def place(bus, sig, start, pan=0.0, gain=1.0):
         return
     th = (pan + 1) * np.pi / 4
     gl, gr = np.cos(th), np.sin(th)
-    # Interaural delay only for wide pans: small delays comb-filter in mono
-    # (phone speakers) and kill the crinkle's top end.
-    itd = int(abs(pan) * 0.00045 * SR) if abs(pan) >= 0.5 else 0
+    # No interaural delay: any delay comb-filters in mono (phone speakers).
+    itd = 0
     for ch, g, d in ((0, gl, itd if pan > 0 else 0), (1, gr, itd if pan < 0 else 0)):
         s = start + d
         if s >= N:
@@ -83,9 +82,9 @@ def noise(n):
 def koto(freq, dur=2.4, bright=0.55):
     """Karplus-Strong pluck with a soft body resonance."""
     n = int(dur * SR)
-    # Loop length minus the averaging filter's half-sample delay; the
+    # Loop length corrected for the averaging filter's half-sample delay; the
     # fraction is made up by a first-order allpass so high notes stay in tune.
-    pf = SR / freq - 0.5
+    pf = SR / freq + 0.5
     p = max(2, int(pf))
     frac = pf - p
     C = (1 - frac) / (1 + frac)
@@ -171,7 +170,7 @@ def crinkle(dur, speed_curve, density=1400.0, bright=1.0):
         ping = np.sin(2 * np.pi * rng.uniform(1800, 6500) * np.arange(g) / SR + rng.uniform(0, 6.28))
         grain = (0.6 * ping + 0.4 * noise(g)) * dec
         out[h:h + g] += grain * rng.uniform(0.15, 1.0) ** 1.6
-    crack = bp(out, 1400 * bright, min(9000, 7000 * bright), 3)
+    crack = bp(out, 1400 * bright, 12000, 2)
     # Low "sheet bending" body under the grains, slowly breathing.
     wob = 0.6 + 0.4 * np.sin(np.linspace(0, 9 * np.pi, n) + rng.uniform(0, 6)) ** 2
     body = bp(noise(n), 300, 900, 2) * rate ** 1.5 * wob * 0.1
@@ -185,7 +184,7 @@ def snap(gain=1.0, tone=1.0):
     """
     n = int(0.42 * SR)
     t = np.arange(n) / SR
-    click = hp(noise(n), 4200, 4) * np.exp(-t * 900)
+    click = lp(hp(noise(n), 4200, 4), 10000, 2) * np.exp(-t * 400)
     # Zip: band sweeping up quickly.
     zn = int(0.07 * SR)
     z = noise(zn)
@@ -197,11 +196,14 @@ def snap(gain=1.0, tone=1.0):
     # Paper on the mat: a short, high knock (not a sub kick) plus a 30 ms
     # mid "paper body" burst, so the crease reads as paper, not drum.
     thump = np.sin(2 * np.pi * (170 * tone) * t * (1 - 0.35 * t)) * np.exp(-t * 60) * 0.2
-    bn = int(0.03 * SR)
-    body = bp(noise(bn), 1200, 3000, 2) * env_ad(bn, 0.04, 6) * 0.4
-    out = click * 1.3 + thump
+    bn = int(0.05 * SR)
+    body = bp(noise(bn), 700, 2500, 2) * env_ad(bn, 0.04, 6) * 1.0
+    ln = int(0.04 * SR)
+    low = bp(noise(ln), 250, 600, 2) * env_ad(ln, 0.05, 7) * 0.35
+    out = click * 0.5 + thump
     out[:zn] += zip_
     out[:bn] += body
+    out[:ln] += low
     return out * gain
 
 
@@ -269,7 +271,7 @@ while b < len(prog):
     level = 0.015 if b < 3 else 0.04
     n = int(length * SR)
     t = np.arange(n) / SR
-    e = np.minimum(1, t / 0.9) * np.exp(-np.maximum(0, t - (length - 1.2)) * 2.0)
+    e = np.minimum(1, t / 0.35) * np.exp(-np.maximum(0, t - (length - 1.2)) * 1.0)
     for k, st in enumerate(chord):
         f = midi(50 + st)
         tone = (tri(f * 0.997, t) + tri(f * 1.003, t)) * 0.5
@@ -391,8 +393,8 @@ for e in T["events"]:
         place(sfx, bell(midi(93), 1.4) * 0.12, fs(fr), pan=0.35)
     elif k == "keepsake":
         n = int(0.04 * SR)
-        place(sfx, bp(noise(n), 700, 3000) * env_ad(n, 0.02, 25) * 0.3, fs(fr), pan=-0.6 + 0.24 * e["i"])
-        place(sfx, koto(midi(penta(2 + e["i"], 62)), 1.2, 0.5) * 0.09, fs(fr), pan=-0.6 + 0.24 * e["i"])
+        place(sfx, bp(noise(n), 700, 3000) * env_ad(n, 0.02, 25) * 0.48, fs(fr), pan=-0.6 + 0.24 * e["i"])
+        place(sfx, koto(midi(penta(2 + e["i"], 62)), 1.2, 0.5) * 0.14, fs(fr), pan=-0.6 + 0.24 * e["i"])
     elif k == "release":
         for i in range(9):
             place(sfx, bell(midi(81 + PENTA[i % 5] + 12 * (i // 5)), 2.0) * 0.12, fs(fr + i * 6), pan=np.sin(i * 1.7) * 0.6)
@@ -433,10 +435,16 @@ for bus in (music, sfx):
 
 # Duck the score 8 dB under every fold (pull to just after the crease).
 duck = np.ones(N)
-ramp = int(0.03 * SR)
-for f in T["folds"]:
-    a, b2 = fs(f["pullStart"] - 3), min(N, fs(f["snap"] + 6))
-    duck[a:b2] = np.minimum(duck[a:b2], 10 ** (-8 / 20))
+ramp = int(0.08 * SR)
+spans = sorted((f["pullStart"] - 3, f["snap"] + 6) for f in T["folds"])
+merged = []
+for a, b2 in spans:
+    if merged and a - merged[-1][1] < 10:  # bridge short gaps: no pumping
+        merged[-1][1] = max(merged[-1][1], b2)
+    else:
+        merged.append([a, b2])
+for a, b2 in merged:
+    duck[fs(a):min(N, fs(b2))] = 10 ** (-8 / 20)
 duck = np.convolve(duck, np.ones(ramp) / ramp, mode="same")
 music *= duck
 music *= 1.5  # sits ~7 LU under the paper sounds

@@ -16,6 +16,6 @@
 | 12 | **Warm key light + tilt-shift** | The game's night palette read cold in macro; miniature focus makes the desk feel tiny and handmade | Neutral light (lavender paper) |
 | 13 | **Captions placed low or in the sky, never over a model** | Fixes from the style frames: the lake line sat on the moon | Centred captions |
 | 14 | **End on a lantern light-wipe into the washi card** | The game's reward (lanterns) becomes the transition into the sign-off | Fade to black |
-| 15 | **H.264 CRF 16, preset slow; audio -16 LUFS, ≤ -1 dBTP after AAC** | At -14 the limiter took 5–14 dB off the snaps; -16 keeps ASMR transients (crest within ~2 dB of the raw mix). Platforms turn louder files down, not quieter ones up much, so -16 costs little | -14 LUFS with heavy limiting |
+| 15 | **H.264 CRF 16, preset slow; audio -16 LUFS, ≤ -1 dBTP after AAC** | At -14 the limiter took 5–14 dB off the snaps; -16 with a rebuilt snap keeps ASMR transients (limiter takes ≤ 3 dB off any crease, measured). Platforms turn louder files down, not quieter ones up much, so -16 costs little | -14 LUFS with heavy limiting |
 | 16 | **Crinkle = resonant pings + noise, panned with the flap; mono-safe panning; decorrelated room** | Sound critic: crinkle read as static, small ITDs comb-filtered in mono | White-noise grains, fixed pan |
 | 17 | **Short capped wrist** for the hand | A long forearm rose toward the overhead lens and hid the fox; tracked hands stop at the wrist anyway | Long forearm; open tube |
