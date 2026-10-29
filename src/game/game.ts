@@ -808,6 +808,7 @@ export class FoldGame extends createSystem({}) {
     const p = this.prepared!;
     this.sheet.commit(p);
     sound.crease(this.stepIndex);
+    this.haptic(0.55, 45);
     // Sparkles along the crease.
     const a = this.foldToStation(p.guide[0], this.tmpV);
     const b = this.foldToStation(p.guide[1], this.tmpV2);
@@ -823,6 +824,18 @@ export class FoldGame extends createSystem({}) {
       this.beginLife();
     } else {
       this.prepareStep();
+    }
+  }
+
+  /** A short tick on any controller that has a rumble motor (hands have none). */
+  private haptic(intensity: number, ms: number): void {
+    const session = this.world.renderer.xr.getSession();
+    if (!session) return;
+    for (const src of session.inputSources) {
+      const act = src.gamepad?.hapticActuators?.[0] as
+        | { pulse?: (v: number, d: number) => Promise<boolean> }
+        | undefined;
+      act?.pulse?.(intensity, ms).catch(() => undefined);
     }
   }
 
