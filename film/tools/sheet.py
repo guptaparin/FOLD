@@ -18,6 +18,6 @@ for i, f in enumerate(picks):
     im = Image.open(p).convert('RGB').resize((w, h), Image.LANCZOS)
     x, y = (i % cols) * w, (i // cols) * (h + 26)
     sheet.paste(im, (x, y))
-    scene = next(s['id'] for s in T['scenes'] if s['start'] <= f < s['end'] or f == total - 1)
+    scene = next((s['id'] for s in T['scenes'] if s['start'] <= f < s['end']), T['scenes'][-1]['id'])
     dr.text((x + 8, y + h + 4), f'#{f}  {f/30:5.2f}s  {scene}', fill=(240, 230, 210), font=font)
 sheet.save(OUT); print(OUT, picks)
