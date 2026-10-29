@@ -1165,6 +1165,40 @@ export class FoldGame extends createSystem({}) {
     return true;
   }
 
+  /**
+   * Mouse folding: the angle whose handle position on screen is nearest the
+   * cursor. The flap follows the pointer along its own on-screen arc, so it
+   * moves from the first pixel of the drag whatever the camera angle.
+   */
+  private angleFromScreen(ptr: Pointer): number {
+    const p = this.prepared!;
+    const cam = this.world.camera;
+    const mouse = this.tmpV.copy(ptr.rayDir).add(ptr.rayOrigin).project(cam);
+    const mx = mouse.x;
+    const my = mouse.y;
+    const top = (this.sheet.stackAt([p.handle[0], p.handle[1]]) + 1) * 0.004 + 0.012;
+    this.env.board.updateWorldMatrix(true, false);
+    const n = 64;
+    let best = 0;
+    let bestD = Infinity;
+    for (let i = 0; i <= n; i++) {
+      const ang = (p.target * i) / n;
+      this.guides.handlePoint(p, ang, top, this.tmpV2);
+      this.tmpV2.multiplyScalar(PAPER_HALF);
+      this.env.board.localToWorld(this.tmpV2).project(cam);
+      const dx = this.tmpV2.x - mx;
+      const dy = (this.tmpV2.y - my) / cam.aspect;
+      // Mild preference for staying near the current angle keeps the flap
+      // from jumping when its on-screen arc doubles back.
+      const d = Math.hypot(dx, dy) + Math.abs(ang - this.theta) * 0.004;
+      if (d < bestD) {
+        bestD = d;
+        best = ang;
+      }
+    }
+    return best;
+  }
+
   /** Fold angle implied by a world point, using the prepared hinge. */
   private angleFor(world: Vector3): number {
     const p = this.prepared!;
@@ -1239,7 +1273,9 @@ export class FoldGame extends createSystem({}) {
     if (this.grab) {
       const g = this.grab;
       const released = g.pointer.pinchUp || !g.pointer.pinching || g.pointer.kind === 'none';
-      if (!released && this.pointerFoldPos(g, this.tmpV2)) {
+      if (!released && g.mode === 'plane') {
+        this.thetaGoal = this.angleFromScreen(g.pointer);
+      } else if (!released && this.pointerFoldPos(g, this.tmpV2)) {
         this.thetaGoal = this.angleFor(this.tmpV2.clone());
       }
       const target = p.target;
@@ -1423,10 +1459,17 @@ export class FoldGame extends createSystem({}) {
     }
     // A gentle drift so the diorama reads as 3D.
     const sway = Math.sin(time * 0.25) * 0.015;
-    cam.position.set(sway, eye.y + 0.02, 0.06);
-    cam.lookAt(0, eye.y - 0.4, -0.62);
-    cam.fov = 58;
-    cam.updateProjectionMatrix();
+    // Narrow or portrait windows widen the view so the whole desk (chapter
+    // cards, settings, keepsakes) stays on screen.
+    const narrow = Math.max(1, 1.2 / Math.max(0.3, cam.aspect));
+    const fov = Math.min(82, (2 * Math.atan(Math.tan((29 * Math.PI) / 180) * narrow) * 180) / Math.PI);
+    const back = (narrow - 1) * 0.06;
+    cam.position.set(sway, eye.y + 0.02 + back, 0.06 + back);
+    cam.lookAt(0, eye.y - 0.42 - back * 0.5, -0.6);
+    if (Math.abs(cam.fov - fov) > 0.01) {
+      cam.fov = fov;
+      cam.updateProjectionMatrix();
+    }
   }
 }
 

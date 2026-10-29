@@ -49,6 +49,8 @@ export class InputHub {
   readonly gazeDir = new Vector3(0, 0, -1);
   private ndc = new Vector2();
   private mouseDown = false;
+  /** Set on press, cleared once a frame has seen it, so instant clicks count. */
+  private mouseLatch = false;
   private mouseMoved = false;
   private m = new Matrix4();
   private q = new Quaternion();
@@ -75,6 +77,7 @@ export class InputHub {
   private onDown = (e: PointerEvent): void => {
     if (e.button !== 0) return;
     this.mouseDown = true;
+    this.mouseLatch = true;
     this.updateNdc(e);
   };
   private onUp = (): void => {
@@ -118,8 +121,11 @@ export class InputHub {
       p.rayOrigin.setFromMatrixPosition(cam.matrixWorld);
       p.rayDir.set(this.ndc.x, this.ndc.y, 0.5).unproject(cam).sub(p.rayOrigin).normalize();
       p.rayValid = true;
-      p.setPinch(this.mouseDown);
-      p.strength = this.mouseDown ? 1 : 0;
+      // A press and release inside one frame still counts as one pinch frame.
+      const down = this.mouseDown || this.mouseLatch;
+      this.mouseLatch = false;
+      p.setPinch(down);
+      p.strength = down ? 1 : 0;
       this.mouseMoved = false;
       return;
     }
