@@ -1,0 +1,797 @@
+{
+ "fps": 30,
+ "bpm": 90,
+ "beatFrames": 20,
+ "barFrames": 80,
+ "totalFrames": 960,
+ "width": 1920,
+ "height": 1080,
+ "beats": [
+  0,
+  20,
+  40,
+  60,
+  80,
+  100,
+  120,
+  140,
+  160,
+  180,
+  200,
+  220,
+  240,
+  260,
+  280,
+  300,
+  320,
+  340,
+  360,
+  380,
+  400,
+  420,
+  440,
+  460,
+  480,
+  500,
+  520,
+  540,
+  560,
+  580,
+  600,
+  620,
+  640,
+  660,
+  680,
+  700,
+  720,
+  740,
+  760,
+  780,
+  800,
+  820,
+  840,
+  860,
+  880,
+  900,
+  920,
+  940,
+  960
+ ],
+ "downbeats": [
+  0,
+  80,
+  160,
+  240,
+  320,
+  400,
+  480,
+  560,
+  640,
+  720,
+  800,
+  880,
+  960
+ ],
+ "scenes": [
+  {
+   "id": "hook",
+   "start": 0,
+   "end": 160,
+   "note": "macro: first fold of the tent sheet"
+  },
+  {
+   "id": "reveal",
+   "start": 160,
+   "end": 240,
+   "note": "crane to overhead, tent opens, unfold + flip"
+  },
+  {
+   "id": "fox",
+   "start": 240,
+   "end": 400,
+   "note": "fox folded on the beat, pops alive, unfold + flip"
+  },
+  {
+   "id": "flurry",
+   "start": 400,
+   "end": 480,
+   "note": "swan in seven half-beat folds"
+  },
+  {
+   "id": "lake",
+   "start": 480,
+   "end": 560,
+   "note": "swan lifts, glides into the lake, moonrise"
+  },
+  {
+   "id": "foxpath",
+   "start": 560,
+   "end": 640,
+   "note": "fox lights the lanterns on the path"
+  },
+  {
+   "id": "canyon",
+   "start": 640,
+   "end": 720,
+   "note": "paper plane carries the letter, lighthouse"
+  },
+  {
+   "id": "shelf",
+   "start": 720,
+   "end": 800,
+   "note": "six models on the desk"
+  },
+  {
+   "id": "release",
+   "start": 800,
+   "end": 880,
+   "note": "lanterns rise over the lake"
+  },
+  {
+   "id": "end",
+   "start": 880,
+   "end": 960,
+   "note": "end card"
+  }
+ ],
+ "folds": [
+  {
+   "model": "tent",
+   "step": 0,
+   "pinch": 40,
+   "pullStart": 46,
+   "snap": 120,
+   "hand": true,
+   "kind": "fold"
+  },
+  {
+   "model": "fox",
+   "step": 0,
+   "pinch": 249,
+   "pullStart": 250,
+   "snap": 260,
+   "hand": true,
+   "kind": "fold"
+  },
+  {
+   "model": "fox",
+   "step": 1,
+   "pinch": 269,
+   "pullStart": 270,
+   "snap": 280,
+   "hand": true,
+   "kind": "fold"
+  },
+  {
+   "model": "fox",
+   "step": 2,
+   "pinch": 289,
+   "pullStart": 290,
+   "snap": 300,
+   "hand": true,
+   "kind": "fold"
+  },
+  {
+   "model": "fox",
+   "step": 3,
+   "pinch": 309,
+   "pullStart": 310,
+   "snap": 320,
+   "hand": true,
+   "kind": "fold"
+  },
+  {
+   "model": "fox",
+   "step": 4,
+   "pinch": 329,
+   "pullStart": 330,
+   "snap": 340,
+   "hand": true,
+   "kind": "fold"
+  },
+  {
+   "model": "fox",
+   "step": 5,
+   "pinch": 349,
+   "pullStart": 350,
+   "snap": 360,
+   "hand": true,
+   "kind": "flip"
+  },
+  {
+   "model": "swan",
+   "step": 0,
+   "pinch": 401,
+   "pullStart": 402,
+   "snap": 410,
+   "hand": false,
+   "kind": "fold"
+  },
+  {
+   "model": "swan",
+   "step": 1,
+   "pinch": 411,
+   "pullStart": 412,
+   "snap": 420,
+   "hand": false,
+   "kind": "fold"
+  },
+  {
+   "model": "swan",
+   "step": 2,
+   "pinch": 421,
+   "pullStart": 422,
+   "snap": 430,
+   "hand": false,
+   "kind": "flip"
+  },
+  {
+   "model": "swan",
+   "step": 3,
+   "pinch": 431,
+   "pullStart": 432,
+   "snap": 440,
+   "hand": false,
+   "kind": "fold"
+  },
+  {
+   "model": "swan",
+   "step": 4,
+   "pinch": 441,
+   "pullStart": 442,
+   "snap": 450,
+   "hand": false,
+   "kind": "fold"
+  },
+  {
+   "model": "swan",
+   "step": 5,
+   "pinch": 451,
+   "pullStart": 452,
+   "snap": 460,
+   "hand": false,
+   "kind": "fold"
+  },
+  {
+   "model": "swan",
+   "step": 6,
+   "pinch": 461,
+   "pullStart": 462,
+   "snap": 470,
+   "hand": false,
+   "kind": "fold"
+  }
+ ],
+ "morphs": [
+  {
+   "from": "tent",
+   "to": "fox",
+   "unfold": [
+    212,
+    228
+   ],
+   "flip": [
+    226,
+    240
+   ]
+  },
+  {
+   "from": "fox",
+   "to": "swan",
+   "unfold": [
+    380,
+    392
+   ],
+   "flip": [
+    390,
+    400
+   ]
+  }
+ ],
+ "life": [
+  {
+   "model": "tent",
+   "open": [
+    150,
+    196
+   ]
+  },
+  {
+   "model": "fox",
+   "open": [
+    362,
+    378
+   ]
+  },
+  {
+   "model": "swan",
+   "open": [
+    480,
+    508
+   ],
+   "glide": [
+    500,
+    546
+   ],
+   "land": 546
+  }
+ ],
+ "type": [
+  {
+   "text": "Fold real paper.",
+   "in": 126,
+   "out": 200,
+   "where": "crease"
+  },
+  {
+   "text": "with your hands.",
+   "in": 168,
+   "out": 236,
+   "where": "low"
+  },
+  {
+   "text": "Every fold comes alive.",
+   "in": 500,
+   "out": 556,
+   "where": "low"
+  },
+  {
+   "text": "Six chapters.",
+   "in": 730,
+   "out": 796,
+   "where": "low"
+  },
+  {
+   "text": "A new sheet every day.",
+   "in": 808,
+   "out": 872,
+   "where": "sky"
+  }
+ ],
+ "acts": {
+  "foxpath": {
+   "start": 560,
+   "speed": 1.35,
+   "offset": 0.0,
+   "hopT": 0.55
+  },
+  "canyon": {
+   "start": 640,
+   "speed": 1.3,
+   "offset": 2.0,
+   "dur": 4.5
+  }
+ },
+ "progress": [
+  [
+   0,
+   0.0
+  ],
+  [
+   120,
+   0.16666666666666666
+  ],
+  [
+   360,
+   0.3333333333333333
+  ],
+  [
+   470,
+   0.5
+  ],
+  [
+   546,
+   0.6666666666666666
+  ],
+  [
+   600,
+   0.8333333333333334
+  ],
+  [
+   700,
+   1.0
+  ]
+ ],
+ "release": 806,
+ "wipe": [
+  862,
+  892
+ ],
+ "events": [
+  {
+   "type": "pinch",
+   "frame": 40,
+   "hand": true
+  },
+  {
+   "type": "pull",
+   "frame": 46,
+   "end": 120,
+   "kind": "fold"
+  },
+  {
+   "type": "snap",
+   "frame": 120,
+   "kind": "fold",
+   "model": "tent"
+  },
+  {
+   "type": "shimmer",
+   "frame": 150,
+   "end": 196
+  },
+  {
+   "type": "unfold",
+   "frame": 212,
+   "end": 228
+  },
+  {
+   "type": "turn",
+   "frame": 226,
+   "end": 240
+  },
+  {
+   "type": "pinch",
+   "frame": 249,
+   "hand": true
+  },
+  {
+   "type": "pull",
+   "frame": 250,
+   "end": 260,
+   "kind": "fold"
+  },
+  {
+   "type": "snap",
+   "frame": 260,
+   "kind": "fold",
+   "model": "fox"
+  },
+  {
+   "type": "pinch",
+   "frame": 269,
+   "hand": true
+  },
+  {
+   "type": "pull",
+   "frame": 270,
+   "end": 280,
+   "kind": "fold"
+  },
+  {
+   "type": "snap",
+   "frame": 280,
+   "kind": "fold",
+   "model": "fox"
+  },
+  {
+   "type": "pinch",
+   "frame": 289,
+   "hand": true
+  },
+  {
+   "type": "pull",
+   "frame": 290,
+   "end": 300,
+   "kind": "fold"
+  },
+  {
+   "type": "snap",
+   "frame": 300,
+   "kind": "fold",
+   "model": "fox"
+  },
+  {
+   "type": "pinch",
+   "frame": 309,
+   "hand": true
+  },
+  {
+   "type": "pull",
+   "frame": 310,
+   "end": 320,
+   "kind": "fold"
+  },
+  {
+   "type": "snap",
+   "frame": 320,
+   "kind": "fold",
+   "model": "fox"
+  },
+  {
+   "type": "pinch",
+   "frame": 329,
+   "hand": true
+  },
+  {
+   "type": "pull",
+   "frame": 330,
+   "end": 340,
+   "kind": "fold"
+  },
+  {
+   "type": "snap",
+   "frame": 340,
+   "kind": "fold",
+   "model": "fox"
+  },
+  {
+   "type": "pinch",
+   "frame": 349,
+   "hand": true
+  },
+  {
+   "type": "pull",
+   "frame": 350,
+   "end": 360,
+   "kind": "flip"
+  },
+  {
+   "type": "snap",
+   "frame": 360,
+   "kind": "flip",
+   "model": "fox"
+  },
+  {
+   "type": "shimmer",
+   "frame": 362,
+   "end": 378
+  },
+  {
+   "type": "unfold",
+   "frame": 380,
+   "end": 392
+  },
+  {
+   "type": "turn",
+   "frame": 390,
+   "end": 400
+  },
+  {
+   "type": "pinch",
+   "frame": 401,
+   "hand": false
+  },
+  {
+   "type": "pull",
+   "frame": 402,
+   "end": 410,
+   "kind": "fold"
+  },
+  {
+   "type": "snap",
+   "frame": 410,
+   "kind": "fold",
+   "model": "swan"
+  },
+  {
+   "type": "pinch",
+   "frame": 411,
+   "hand": false
+  },
+  {
+   "type": "pull",
+   "frame": 412,
+   "end": 420,
+   "kind": "fold"
+  },
+  {
+   "type": "snap",
+   "frame": 420,
+   "kind": "fold",
+   "model": "swan"
+  },
+  {
+   "type": "pinch",
+   "frame": 421,
+   "hand": false
+  },
+  {
+   "type": "pull",
+   "frame": 422,
+   "end": 430,
+   "kind": "flip"
+  },
+  {
+   "type": "snap",
+   "frame": 430,
+   "kind": "flip",
+   "model": "swan"
+  },
+  {
+   "type": "pinch",
+   "frame": 431,
+   "hand": false
+  },
+  {
+   "type": "pull",
+   "frame": 432,
+   "end": 440,
+   "kind": "fold"
+  },
+  {
+   "type": "snap",
+   "frame": 440,
+   "kind": "fold",
+   "model": "swan"
+  },
+  {
+   "type": "pinch",
+   "frame": 441,
+   "hand": false
+  },
+  {
+   "type": "pull",
+   "frame": 442,
+   "end": 450,
+   "kind": "fold"
+  },
+  {
+   "type": "snap",
+   "frame": 450,
+   "kind": "fold",
+   "model": "swan"
+  },
+  {
+   "type": "pinch",
+   "frame": 451,
+   "hand": false
+  },
+  {
+   "type": "pull",
+   "frame": 452,
+   "end": 460,
+   "kind": "fold"
+  },
+  {
+   "type": "snap",
+   "frame": 460,
+   "kind": "fold",
+   "model": "swan"
+  },
+  {
+   "type": "pinch",
+   "frame": 461,
+   "hand": false
+  },
+  {
+   "type": "pull",
+   "frame": 462,
+   "end": 470,
+   "kind": "fold"
+  },
+  {
+   "type": "snap",
+   "frame": 470,
+   "kind": "fold",
+   "model": "swan"
+  },
+  {
+   "type": "shimmer",
+   "frame": 480,
+   "end": 508
+  },
+  {
+   "type": "glide",
+   "frame": 500,
+   "end": 546
+  },
+  {
+   "type": "moonrise",
+   "frame": 540
+  },
+  {
+   "type": "splash",
+   "frame": 546
+  },
+  {
+   "type": "hop",
+   "frame": 560,
+   "i": 0
+  },
+  {
+   "type": "hop",
+   "frame": 572,
+   "i": 1
+  },
+  {
+   "type": "lantern",
+   "frame": 572,
+   "i": 0
+  },
+  {
+   "type": "hop",
+   "frame": 584,
+   "i": 2
+  },
+  {
+   "type": "hop",
+   "frame": 597,
+   "i": 3
+  },
+  {
+   "type": "lantern",
+   "frame": 597,
+   "i": 1
+  },
+  {
+   "type": "hop",
+   "frame": 609,
+   "i": 4
+  },
+  {
+   "type": "hop",
+   "frame": 621,
+   "i": 5
+  },
+  {
+   "type": "lantern",
+   "frame": 621,
+   "i": 2
+  },
+  {
+   "type": "flight",
+   "frame": 640,
+   "end": 712
+  },
+  {
+   "type": "beam",
+   "frame": 698
+  },
+  {
+   "type": "keepsake",
+   "frame": 726,
+   "i": 0
+  },
+  {
+   "type": "keepsake",
+   "frame": 737,
+   "i": 1
+  },
+  {
+   "type": "keepsake",
+   "frame": 748,
+   "i": 2
+  },
+  {
+   "type": "keepsake",
+   "frame": 759,
+   "i": 3
+  },
+  {
+   "type": "keepsake",
+   "frame": 770,
+   "i": 4
+  },
+  {
+   "type": "keepsake",
+   "frame": 781,
+   "i": 5
+  },
+  {
+   "type": "release",
+   "frame": 806
+  },
+  {
+   "type": "wipe",
+   "frame": 862,
+   "end": 892
+  },
+  {
+   "type": "endchord",
+   "frame": 880
+  }
+ ],
+ "cutsOnBeat": [
+  0,
+  160,
+  240,
+  400,
+  480,
+  560,
+  640,
+  720,
+  800,
+  880
+ ]
+}

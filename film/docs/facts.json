@@ -1,0 +1,11 @@
+[
+  {"claim": "FOLD", "source": "Game title", "url": "https://fold-blond.vercel.app/"},
+  {"claim": "a little paper world, folded by hand", "source": "Game tagline on the landing page: \"a little paper world, folded by hand\"", "url": "https://fold-blond.vercel.app/"},
+  {"claim": "Fold real paper.", "source": "Landing page feature: \"Real paper, real folds — Pinch a corner and pull it across. The flap follows your fingers around the crease.\"", "url": "https://fold-blond.vercel.app/"},
+  {"claim": "with your hands.", "source": "Competition hard requirement met by the game: \"Your experience must be fully usable with hands, end-to-end.\"", "url": "https://start-developer-competition-26.devpost.com/"},
+  {"claim": "Every fold comes alive.", "source": "Landing page feature: \"Every model you fold steps into a paper diorama and fixes something in the world.\"", "url": "https://fold-blond.vercel.app/"},
+  {"claim": "Six chapters.", "source": "Game content: six chapters (Shelter, Lantern Boat, Little Fox, Water Cup, Paper Plane, Moon Swan) on the landing page", "url": "https://fold-blond.vercel.app/"},
+  {"claim": "A new sheet every day.", "source": "Landing page feature: \"A new paper every day — The Daily Fold gives everyone the same sheet.\"", "url": "https://fold-blond.vercel.app/"},
+  {"claim": "Made for Meta Quest & Meta VR Glasses", "source": "Landing page footer: \"Meta Quest & Meta VR Glasses · Built with Immersive Web SDK\"; competition: \"experiences for Meta VR devices – including Meta VR Glasses and Meta Quest\"", "url": "https://start-developer-competition-26.devpost.com/"},
+  {"claim": "fold-blond.vercel.app", "source": "Live deployment", "url": "https://fold-blond.vercel.app/"}
+]
