@@ -112,7 +112,11 @@ export class Environment {
   private starMat: ShaderMaterial;
   private moon = new Group();
   private lanterns: InstancedMesh;
-  private lanternData: { p: Vector3; phase: number; lit: number; target: number }[] = [];
+  private lanternData: { p: Vector3; phase: number; lit: number; target: number; rise: number; vy: number }[] = [];
+  /** Things that only belong to the virtual world (hidden in mixed reality). */
+  private worldOnly: Object3D[] = [];
+  private fog: FogExp2;
+  mixedReality = false;
   private lanternMat: MeshStandardMaterial;
   private deskLight: PointLight;
   private deskFlame: Mesh;
@@ -123,7 +127,8 @@ export class Environment {
 
   constructor(private scene: Scene) {
     this.root.name = 'Environment';
-    scene.fog = new FogExp2(0x1c2440, 0.018);
+    this.fog = new FogExp2(0x1c2440, 0.018);
+    scene.fog = this.fog;
 
     // Sky dome.
     const sky = new Mesh(
@@ -145,6 +150,7 @@ export class Environment {
     );
     sky.renderOrder = -10;
     this.root.add(sky);
+    this.worldOnly.push(sky);
 
     // Stars.
     const r = rng(42);
@@ -177,6 +183,7 @@ export class Environment {
     });
     this.stars = new Points(sg, this.starMat);
     this.root.add(this.stars);
+    this.worldOnly.push(this.stars);
 
     // Paper moon.
     const moonDisc = new Mesh(
@@ -204,6 +211,7 @@ export class Environment {
     this.moon.position.set(6, 4, -55);
     this.moon.lookAt(0, 0, 0);
     this.root.add(this.moon);
+    this.worldOnly.push(this.moon);
 
     // Cut-paper mountain ridges, three layers.
     const ridgeColors = ['#3b3e66', '#2b2d50', '#1d1f3a'];
@@ -232,6 +240,7 @@ export class Environment {
         m.position.set(Math.sin(a) * radius, -2.6, Math.cos(a) * radius);
         m.lookAt(0, -2.6, 0);
         this.root.add(m);
+        this.worldOnly.push(m);
       }
     });
 
@@ -243,6 +252,7 @@ export class Environment {
     lake.rotation.x = -Math.PI / 2;
     lake.position.y = -1.4;
     this.root.add(lake);
+    this.worldOnly.push(lake);
 
     // Floating lanterns on the lake; more light up as chapters are finished.
     const lanternGeo = new LatheGeometry(
@@ -275,10 +285,13 @@ export class Environment {
         phase: lr() * 10,
         lit: 0,
         target: 0,
+        rise: 0,
+        vy: 0,
       });
       this.lanterns.setColorAt(i, this.c.set(0x2a2a35));
     }
     this.root.add(this.lanterns);
+    this.worldOnly.push(this.lanterns);
 
     // Lights.
     const hemi = new HemisphereLight(0x8ea0d8, 0x3a2a24, 0.55);
@@ -340,11 +353,13 @@ export class Environment {
     top.position.set(0, LAYOUT.deskY - 0.02, LAYOUT.deskZ);
     top.receiveShadow = true;
     this.station.add(top);
+    this.worldOnly.push(top);
     // A front lip, slightly rounded by a cylinder.
     const lip = new Mesh(new CylinderGeometry(0.02, 0.02, 1.4, 16), deskMat);
     lip.rotation.z = Math.PI / 2;
     lip.position.set(0, LAYOUT.deskY - 0.02, LAYOUT.deskZ + 0.41);
     this.station.add(lip);
+    this.worldOnly.push(lip);
     // Legs fading into the dark.
     const legMat = new MeshStandardMaterial({ color: 0x3a2617, roughness: 0.8 });
     for (const [x, z] of [
@@ -356,6 +371,7 @@ export class Environment {
       const leg = new Mesh(new BoxGeometry(0.05, 0.7, 0.05), legMat);
       leg.position.set(x, LAYOUT.deskY - 0.39, z);
       this.station.add(leg);
+      this.worldOnly.push(leg);
     }
 
     // Folding stand: a slanted board with a felt mat.
@@ -397,6 +413,26 @@ export class Environment {
     this.lanternData.forEach((l, i) => (l.target = i < lit ? 1 : 0));
   }
 
+  /**
+   * Mixed reality: hide the sky, lake, mountains and virtual desk so the paper,
+   * the stand and the diorama sit in the player's real room.
+   */
+  setMixedReality(on: boolean): void {
+    this.mixedReality = on;
+    for (const o of this.worldOnly) o.visible = !on;
+    this.scene.fog = on ? null : this.fog;
+  }
+
+  /** Release lit lanterns into the sky. `count` < 0 releases every lit one. */
+  celebrate(count: number): void {
+    let n = 0;
+    for (const l of this.lanternData) {
+      if (l.target < 1 || l.vy > 0) continue;
+      l.vy = 0.12 + Math.random() * 0.12;
+      if (count >= 0 && ++n >= count) break;
+    }
+  }
+
   /** Place the station at the player's head (seated or standing). */
   recenter(head: Vector3, yaw: number): void {
     this.station.position.copy(head);
@@ -414,7 +450,19 @@ export class Environment {
     for (let i = 0; i < this.lanternData.length; i++) {
       const l = this.lanternData[i];
       l.lit += (l.target - l.lit) * Math.min(1, dt * 0.8);
-      this.tmp.position.set(l.p.x, l.p.y + Math.sin(time * 0.6 + l.phase) * 0.04, l.p.z);
+      if (l.vy > 0) {
+        // A sky lantern: drift up and away, then return to the lake lit.
+        l.rise += l.vy * dt;
+        if (l.rise > 16) {
+          l.rise = 0;
+          l.vy = 0;
+        }
+      }
+      this.tmp.position.set(
+        l.p.x + Math.sin(l.rise * 0.4 + l.phase) * l.rise * 0.08,
+        l.p.y + l.rise + Math.sin(time * 0.6 + l.phase) * 0.04,
+        l.p.z,
+      );
       this.tmp.rotation.set(Math.sin(time * 0.4 + l.phase) * 0.06, l.phase, 0);
       this.tmp.updateMatrix();
       this.lanterns.setMatrixAt(i, this.tmp.matrix);

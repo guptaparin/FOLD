@@ -269,7 +269,7 @@ export function craftPaper(color: string, seed = 5, size = 256): Texture {
   g.fillRect(0, 0, size, size);
   // Dark papers get faint fibres; bright ones read fine with more.
   const lum = parseInt(color.slice(1, 3), 16) + parseInt(color.slice(3, 5), 16) + parseInt(color.slice(5, 7), 16);
-  fibres(g, size, seed, 0.1, lum < 300 ? 0.25 : 0.6, 90);
+  fibres(g, size, seed, 0.08, lum < 300 ? 0.08 : lum < 420 ? 0.22 : 0.5, 60);
   const t = finish(c, true);
   cache.set(key, t);
   return t;

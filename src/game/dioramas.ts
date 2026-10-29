@@ -30,6 +30,7 @@ import {
   Vector2,
   Vector3,
 } from '@iwsdk/core';
+import { sound } from './audio.js';
 import { craftPaper, glowTexture, rng } from './textures.js';
 
 // ---------------------------------------------------------------------------
@@ -338,10 +339,18 @@ export class ShelterStage extends Diorama {
   override reset(): void {
     super.reset();
     this.rainLevel = 1;
+    this.clouds.position.set(0, 0, 0);
   }
 
   update(time: number, dt: number): void {
     this.t += dt;
+    if (this.solved && this.rainLevel > 0) {
+      // Once sheltered, the rain eases off and the clouds drift away.
+      this.rainLevel = Math.max(0, this.rainLevel - dt * 0.5);
+      this.clouds.position.y = Math.min(0.06, this.clouds.position.y + dt * 0.03);
+      this.clouds.position.x = Math.min(0.1, this.clouds.position.x + dt * 0.05);
+    }
+    sound.setRain(this.rainLevel);
     // Rain.
     for (let i = 0; i < this.drops.length; i++) {
       const d = this.drops[i];
@@ -374,12 +383,8 @@ export class ShelterStage extends Diorama {
     // Lower the tent gently over the firefly, then the rain clears.
     const drop = ease(t / 1.4);
     creature.position.y = this.landing.y + (1 - drop) * 0.12;
-    if (t > 1.4) {
-      this.rainLevel = Math.max(0, this.rainLevel - dt * 0.5);
-      this.clouds.position.y += dt * 0.03;
-      this.clouds.position.x += dt * 0.05;
-      this.solved = true;
-    }
+    if (t > 1.4) this.solved = true;
+    void dt;
     return t > 4.2;
   }
 }
@@ -515,6 +520,7 @@ export class FoxStage extends Diorama {
   override readonly creatureScale = 0.52;
   private lanterns: LanternProp[] = [];
   private stones: Vector3[] = [];
+  private lastHop = -1;
 
   constructor() {
     super();
@@ -584,6 +590,7 @@ export class FoxStage extends Diorama {
 
   override reset(): void {
     super.reset();
+    this.lastHop = -1;
     for (const l of this.lanterns) l.target = 0;
   }
 
@@ -596,6 +603,10 @@ export class FoxStage extends Diorama {
     // Hop from stone to stone; each lantern lights as the fox passes.
     const hopT = 0.55;
     const idx = Math.min(this.stones.length - 1, Math.floor(t / hopT));
+    if (idx !== this.lastHop && t < hopT * this.stones.length) {
+      this.lastHop = idx;
+      sound.note(2 + idx, 0.22);
+    }
     const k = Math.min(1, (t % hopT) / hopT);
     const a = this.stones[Math.max(0, idx - 1)];
     const b = this.stones[idx];
@@ -626,6 +637,7 @@ export class GardenStage extends Diorama {
   private drops: Sprite[] = [];
   private pond: Mesh;
   private flowerGlow: Sprite;
+  private lastDrip = -1;
 
   constructor() {
     super();
@@ -703,6 +715,7 @@ export class GardenStage extends Diorama {
   override reset(): void {
     super.reset();
     this.bloom = 0;
+    this.lastDrip = -1;
   }
 
   update(time: number, dt: number): void {
@@ -734,6 +747,10 @@ export class GardenStage extends Diorama {
       creature.position.copy(above);
       creature.rotation.z = -ease((t - 3.5) / 0.6) * 1.1;
       // Droplets fall onto the flower.
+      if (t > 3.8 && t < 5.3 && t - this.lastDrip > 0.22) {
+        this.lastDrip = t;
+        sound.drip();
+      }
       this.drops.forEach((d, i) => {
         const ph = ((t - 3.6) * 1.6 + i / this.drops.length) % 1;
         d.position.set(above.x + 0.035 + Math.sin(i) * 0.004, above.y - 0.01 - ph * 0.06, 0.004);
@@ -764,6 +781,7 @@ export class CanyonStage extends Diorama {
   private lampMat: MeshStandardMaterial;
   private letter: Mesh;
   private light: PointLight;
+  private whooshed = false;
 
   constructor() {
     super();
@@ -885,6 +903,7 @@ export class CanyonStage extends Diorama {
     super.reset();
     this.letter.position.set(-0.2, 0.125, 0.02);
     this.letter.rotation.set(0, 0, 0);
+    this.whooshed = false;
   }
 
   update(time: number, dt: number): void {
@@ -900,6 +919,10 @@ export class CanyonStage extends Diorama {
   act(creature: Object3D, t: number, dt: number): boolean {
     // Swoop low over the left cliff, pick up the letter, glide to the tower.
     const dur = 4.5;
+    if (!this.whooshed && t > 0.05) {
+      this.whooshed = true;
+      sound.whoosh();
+    }
     const k = Math.min(1, t / dur);
     const x = -0.24 + 0.4 * ease(k);
     const y = 0.15 + Math.sin(k * Math.PI) * 0.06 - k * 0.02;
@@ -1002,7 +1025,10 @@ export class LakeStage extends Diorama {
     const k = ease(t / 5);
     creature.position.set(-0.16 + 0.2 * k, this.landing.y + Math.sin(t * 2) * 0.0015, 0.03 - 0.03 * k);
     creature.rotation.y = Math.sin(t * 0.8) * 0.12;
-    if (t > 4) this.solved = true;
+    if (t > 4 && !this.solved) {
+      this.solved = true;
+      sound.moonrise();
+    }
     void dt;
     return t > 8;
   }

@@ -98,8 +98,15 @@ export class InputHub {
     const cam = this.world.camera;
     // Gaze: head forward. (On Meta VR Glasses an eye-tracked gaze source
     // replaces this automatically through the same ray.)
-    cam.getWorldPosition(this.gazeOrigin);
-    cam.getWorldDirection(this.gazeDir);
+    const rig = this.world.player;
+    if (rig.gazeOrigin === 'tracked') {
+      // Real eye tracking (Meta VR Glasses): use the gaze ray itself.
+      rig.eyeSpace.getWorldPosition(this.gazeOrigin);
+      rig.eyeSpace.getWorldDirection(this.gazeDir).negate();
+    } else {
+      cam.getWorldPosition(this.gazeOrigin);
+      cam.getWorldDirection(this.gazeDir);
+    }
 
     if (!xr.isPresenting) {
       this.left.kind = this.right.kind = 'none';

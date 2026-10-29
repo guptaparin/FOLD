@@ -1,0 +1,17 @@
+{
+  "name": "FOLD — a little paper world, folded by hand",
+  "short_name": "FOLD",
+  "description": "A hands-first origami game for Meta Quest and Meta VR Glasses. Fold real paper with your hands and bring it to life.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0b1024",
+  "theme_color": "#0b1024",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

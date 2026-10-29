@@ -18,6 +18,11 @@ Entry for the Meta VR Start Developer Competition 2026 — Gaming track, New Exp
 | Meta Quest / Meta VR Glasses | Open the URL in Meta Quest Browser → **Enter VR**. Hands only; no controllers needed |
 | Any desktop browser | **Play in browser**, then click and drag the glowing dot to fold |
 | Controllers | Trigger or grip works as a pinch, with a haptic tick on each crease |
+| Mixed reality | On Quest 3 / 3S, **Fold on your real desk (MR)** drops the sky and the desk and puts the paper world in your room via passthrough |
+| Installed app | As a PWA / Store app it enters VR straight from the app icon |
+
+Hands-only touches: run a fingertip along a fresh crease to sharpen it; poke paper tags to
+press them; on Meta VR Glasses, gaze + pinch uses the real eye-tracked ray.
 
 Settings on the desk: Easy folds (lower snap point), Gaze + pinch, Bold guides, Sound, Recenter.
 
@@ -107,7 +112,8 @@ CHAPTER=4 npx @iwsdk/cli browser run tools/play-chapter.mjs
 ```
 
 The in-page test API is `window.fold` (`start`, `autoFold`, `tick`, `screenOf`,
-`worldOf`, `pointers`, `state`, `stats`).
+`worldOf`, `pointers`, `state`, `stats`, and for marketing shots `camera`, `holdAt`,
+`cleanShot`).
 
 ## Credits
 

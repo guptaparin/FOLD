@@ -154,6 +154,86 @@ export class Sound {
     this.pluck(this.root + PENTA[Math.min(PENTA.length - 1, 4 + step)], 0.4, 0.04);
   }
 
+  private rainGain: GainNode | null = null;
+
+  /** Soft rain on paper; level 0..1. Used by the Shelter chapter. */
+  setRain(level: number): void {
+    if (!this.ctx) return;
+    if (!this.rainGain) {
+      const src = this.ctx.createBufferSource();
+      src.buffer = this.noise;
+      src.loop = true;
+      const hp = this.ctx.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 1800;
+      const lp = this.ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 7000;
+      this.rainGain = this.ctx.createGain();
+      this.rainGain.gain.value = 0;
+      src.connect(hp).connect(lp).connect(this.rainGain).connect(this.musicBus);
+      src.start();
+    }
+    this.rainGain.gain.setTargetAtTime(level * 0.09, this.ctx.currentTime, 0.4);
+  }
+
+  /** A note from the pentatonic scale, `step` places up from the root. */
+  note(step: number, gain = 0.3): void {
+    this.pluck(this.root + PENTA[Math.max(0, Math.min(PENTA.length - 1, step))], gain);
+  }
+
+  /** Water droplet plink. */
+  drip(): void {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const o = ctx.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(1400 + Math.random() * 500, t);
+    o.frequency.exponentialRampToValueAtTime(700, t + 0.08);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.08, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+    o.connect(g).connect(this.sfxBus);
+    o.start(t);
+    o.stop(t + 0.15);
+  }
+
+  /** Air rushing past paper wings. */
+  whoosh(): void {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = this.noise;
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.Q.value = 1.2;
+    f.frequency.setValueAtTime(400, t);
+    f.frequency.exponentialRampToValueAtTime(2600, t + 0.6);
+    f.frequency.exponentialRampToValueAtTime(600, t + 1.4);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.18, t + 0.4);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
+    src.connect(f).connect(g).connect(this.sfxBus);
+    src.start(t, 0, 1.6);
+  }
+
+  /** A slow, rising chord for the moon. */
+  moonrise(): void {
+    if (!this.ctx) return;
+    [0, 4, 7, 12, 16].forEach((st, i) => this.tone(this.midi(this.root + 12 + st), 4, 0.035, 'sine', i * 0.35, this.musicBus));
+  }
+
+  /** A fingertip running along a crease: a short, crisp paper hiss. */
+  sharpen(done = false): void {
+    if (!this.ctx) return;
+    this.burst(0.06, 6200, 1.4, 0.16, 'bandpass');
+    if (done) this.pluck(this.root + 24, 0.22, 0.02);
+  }
+
   /** Paper sliding back after a let-go. */
   release(): void {
     if (!this.ctx) return;

@@ -10,8 +10,8 @@
   },
   "world": {
     "xr": {
-      "mode": "vr",
-      "offer": "always",
+      "mode": "ar",
+      "offer": "none",
       "features": {
         "handTracking": true,
         "gazeTracking": {

@@ -65,7 +65,7 @@ const CSS = `
 `;
 
 /** Mount immediately; call the returned `ready` once the 3D world exists. */
-export function mountLanding(): { ready: (xrEnabled: boolean) => void } {
+export function mountLanding(): { ready: (xrEnabled: boolean) => void; dismiss: () => void } {
   const style = document.createElement('style');
   style.textContent = CSS;
   document.head.appendChild(style);
@@ -85,6 +85,7 @@ export function mountLanding(): { ready: (xrEnabled: boolean) => void } {
       ).join('')}</div>
       <div class="l-btns">
         <button class="l-btn l-primary" id="l-vr">Enter VR</button>
+        <button class="l-btn l-ghost" id="l-mr" hidden>Fold on your real desk (MR)</button>
         <button class="l-btn l-ghost" id="l-flat">Play in browser</button>
       </div>
       <div class="l-note" id="l-note"></div>
@@ -104,8 +105,9 @@ export function mountLanding(): { ready: (xrEnabled: boolean) => void } {
   pill.textContent = 'Enter VR';
   document.body.appendChild(pill);
 
-  const api = () => (window as unknown as { fold: { enterVR(): void; playFlat(): void } }).fold;
+  const api = () => (window as unknown as { fold: { enterVR(): void; enterMR(): void; playFlat(): void } }).fold;
   const vrBtn = el.querySelector<HTMLButtonElement>('#l-vr')!;
+  const mrBtn = el.querySelector<HTMLButtonElement>('#l-mr')!;
   const flatBtn = el.querySelector<HTMLButtonElement>('#l-flat')!;
   const note = el.querySelector<HTMLDivElement>('#l-note')!;
 
@@ -124,6 +126,10 @@ export function mountLanding(): { ready: (xrEnabled: boolean) => void } {
     hide();
   });
   pill.addEventListener('click', () => api().enterVR());
+  mrBtn.addEventListener('click', () => {
+    api().enterMR();
+    hide();
+  });
   flatBtn.addEventListener('click', () => {
     api().playFlat();
     hide();
@@ -134,11 +140,16 @@ export function mountLanding(): { ready: (xrEnabled: boolean) => void } {
   const support: Promise<boolean> = xr
     ? xr.isSessionSupported('immersive-vr').catch(() => false)
     : Promise.resolve(false);
+  const arSupport: Promise<boolean> = xr
+    ? xr.isSessionSupported('immersive-ar').catch(() => false)
+    : Promise.resolve(false);
 
   return {
+    dismiss: hide,
     ready: (enabled: boolean) => {
       xrEnabled = enabled;
       flatBtn.disabled = false;
+      void arSupport.then((ok) => (mrBtn.hidden = !ok));
       void support.then((ok) => {
         vrSupported = ok;
         vrBtn.disabled = !ok;

@@ -14,4 +14,17 @@ const landing = mountLanding();
 void import('./boot.js').then(async ({ boot }) => {
   const world = await boot();
   landing.ready(world.xrEnabled);
+  // Installed as a Quest app (TWA/PWA) there is no 2D page to tap: the app
+  // icon tap is the user activation, so go straight into VR.
+  const nav = navigator as Navigator & { xr?: XRSystem };
+  if ('getDigitalGoodsService' in window && nav.xr) {
+    void nav.xr
+      .isSessionSupported('immersive-vr')
+      .then((ok) => {
+        if (!ok) return;
+        landing.dismiss();
+        (window as unknown as { fold: { enterVR(): void } }).fold.enterVR();
+      })
+      .catch(() => undefined);
+  }
 });

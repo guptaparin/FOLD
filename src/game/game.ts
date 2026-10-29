@@ -18,6 +18,7 @@ import {
   Object3D,
   PCFSoftShadowMap,
   Quaternion,
+  SessionMode,
   Sprite,
   SpriteMaterial,
   Vector3,
@@ -113,6 +114,11 @@ export class FoldGame extends createSystem({}) {
   private hoverHandle = false;
   private flatCamSet = false;
   private simTime = 1000;
+  private simClock = 0;
+  private demoHold: number | null = null;
+  /** The crease just pressed, which a fingertip can run along to sharpen. */
+  private sharp: { a: Vector3; b: Vector3; until: number; done: number; last: Map<string, number>; sound: number } | null = null;
+  private camOverride: { pos: number[]; look: number[]; fov: number } | null = null;
 
   init(): void {
     this.save = load();
@@ -166,10 +172,16 @@ export class FoldGame extends createSystem({}) {
         if (v === VisibilityState.Visible) {
           this.recenterPending = 0.35;
           const session = this.world.renderer.xr.getSession();
+          // Passthrough sessions blend with the room: hide the virtual world.
+          const blend = (session as (XRSession & { environmentBlendMode?: string }) | null)?.environmentBlendMode;
+          this.env.setMixedReality(!!blend && blend !== 'opaque');
           session?.addEventListener('selectstart', unlockAudio);
           session?.addEventListener('squeezestart', unlockAudio);
         }
-        if (v === VisibilityState.NonImmersive) this.flatCamSet = false;
+        if (v === VisibilityState.NonImmersive) {
+          this.flatCamSet = false;
+          this.env.setMixedReality(false);
+        }
         if (this.state === 'menu') this.drawTitleFor('menu');
       }),
       () => this.hub.dispose(),
@@ -180,7 +192,13 @@ export class FoldGame extends createSystem({}) {
       enterVR: () => {
         sound.unlock();
         sound.startAmbience();
-        this.world.launchXR();
+        this.world.launchXR({ sessionMode: 'immersive-vr' as SessionMode });
+      },
+      /** Mixed reality: fold on your real desk, the paper world in your room. */
+      enterMR: () => {
+        sound.unlock();
+        sound.startAmbience();
+        this.world.launchXR({ sessionMode: 'immersive-ar' as SessionMode });
       },
       playFlat: () => {
         sound.unlock();
@@ -188,7 +206,7 @@ export class FoldGame extends createSystem({}) {
       },
       start: (i: number) => this.startChapter(CHAPTERS[i], false),
       daily: () => this.startDaily(),
-      state: () => ({ state: this.state, step: this.stepIndex, chapter: this.chapter.index, theta: this.theta, daily: this.daily }),
+      state: () => ({ state: this.state, step: this.stepIndex, chapter: this.chapter.index, theta: this.theta, daily: this.daily, mr: this.env.mixedReality, sharp: this.sharp ? Number(this.sharp.done.toFixed(2)) : -1 }),
       /** Test hook: fold the current step programmatically. */
       autoFold: () => this.autoFold(),
       /** Diagnostics: renderer cost and canvas size. */
@@ -270,7 +288,7 @@ export class FoldGame extends createSystem({}) {
         return autopilot(api, chapters, () => {
           sound.unlock();
           sound.startAmbience();
-          if (!this.hub.presenting) this.world.launchXR();
+          if (!this.hub.presenting) this.world.launchXR({ sessionMode: 'immersive-vr' as SessionMode });
         });
       },
       /** Test hook: what the hand pointers currently report. */
@@ -281,9 +299,26 @@ export class FoldGame extends createSystem({}) {
           pinching: p.pinching,
           strength: Number(p.strength.toFixed(2)),
           pinch: p.pinchPos.toArray().map((x) => Number(x.toFixed(3))),
+          tip: p.tipPos.toArray().map((x) => Number(x.toFixed(3))),
         })),
       /** Test hook: stop the render loop (logic then advances only via tick). */
       freeze: () => this.world.renderer.setAnimationLoop(null),
+      /** Test hook: world-space ends of the crease that can be sharpened. */
+      sharpLine: () => (this.sharp ? { a: this.sharp.a.toArray(), b: this.sharp.b.toArray() } : null),
+      /** Screenshot hook: hide the UI cards for clean marketing shots. */
+      cleanShot: (on: boolean) => {
+        this.instrCard.mesh.visible = !on;
+        this.foldButtons.visible = !on && (this.state === 'fold' || this.state === 'intro');
+        this.titleCard.mesh.visible = !on;
+      },
+      /** Screenshot hook: hold the current fold at a fraction of its angle (null releases). */
+      holdAt: (frac: number | null) => {
+        this.demoHold = frac;
+      },
+      /** Screenshot hook: pin the desktop camera (station space), or null to release. */
+      camera: (pos: number[] | null, look?: number[], fov = 50) => {
+        this.camOverride = pos && look ? { pos, look, fov } : null;
+      },
       /** Test hook: render a frame synchronously (for screenshots). */
       render: () => this.world.renderer.render(this.world.scene, this.world.camera),
       /** Test hook: render quality for slow software GPUs. */
@@ -530,6 +565,21 @@ export class FoldGame extends createSystem({}) {
     const r = c.background(99);
     const key = todayKey();
     const did = this.save.daily.last === key;
+    // A swatch of today's paper, so the card shows what you'll fold.
+    const today = dailyFor(key);
+    if (unlocked) {
+      const g = c.g;
+      const sw = r.h * 0.16;
+      g.save();
+      g.translate(r.x + r.w * 0.86, r.y + r.h * 0.2);
+      g.rotate(Math.PI / 4);
+      g.fillStyle = today.paper.base;
+      g.strokeStyle = 'rgba(255,240,220,0.8)';
+      g.lineWidth = 3;
+      g.fillRect(-sw / 2, -sw / 2, sw, sw);
+      g.strokeRect(-sw / 2, -sw / 2, sw, sw);
+      g.restore();
+    }
     c.text('Daily Fold', r.x + r.w / 2, r.y + r.h * 0.34, { size: r.h * 0.16, font: SERIF, weight: 600, align: 'center' });
     c.text(unlocked ? (did ? 'Folded today ✓' : 'New paper today') : 'Finish chapter I', r.x + r.w / 2, r.y + r.h * 0.56, {
       size: r.h * 0.095,
@@ -634,9 +684,11 @@ export class FoldGame extends createSystem({}) {
           : 'Pinch the glowing dot and pull it along the path. Let go to crease.'
         : steps[i].kind === 'flip'
           ? flat
-            ? 'Drag the far edge up and over.'
-            : 'Pinch the far edge and turn it over.'
-          : '');
+            ? 'Drag the glowing edge up and over.'
+            : 'Pinch the glowing edge and turn the paper over.'
+          : this.stepIndex === 1 && this.chapter.index === 1 && !this.daily && !flat
+            ? 'Tip: run a fingertip along a new crease to sharpen it.'
+            : '');
     if (hint) {
       y += r.h * 0.02;
       c.text(hint, startX, y, { size: r.h * 0.085, maxW: r.w - pad * 2, color: '#8a5a3a', italic: true, font: SERIF });
@@ -696,6 +748,7 @@ export class FoldGame extends createSystem({}) {
 
   private loadStage(ch: Chapter): void {
     if (this.stage) this.stageHolder.remove(this.stage.root);
+    sound.setRain(0);
     this.creature = null;
     this.stage = ch.stage();
     this.stage.reset();
@@ -814,6 +867,14 @@ export class FoldGame extends createSystem({}) {
     const b = this.foldToStation(p.guide[1], this.tmpV2);
     this.burst(a.clone(), b.clone(), 16);
     this.glowLevel = 0.6;
+    if (p.step.kind === 'fold') {
+      // World-space crease, sampled for the fingertip sharpening gesture.
+      const wa = this.foldToStation(p.guide[0], new Vector3());
+      const wb = this.foldToStation(p.guide[1], new Vector3());
+      this.env.station.localToWorld(wa);
+      this.env.station.localToWorld(wb);
+      this.sharp = { a: wa, b: wb, until: this.simClock + 6, done: 0, last: new Map(), sound: 0 };
+    }
     this.stepIndex++;
     this.save.resume = { chapter: this.chapter.index, step: this.stepIndex, daily: this.daily };
     store(this.save);
@@ -824,6 +885,57 @@ export class FoldGame extends createSystem({}) {
       this.beginLife();
     } else {
       this.prepareStep();
+    }
+  }
+
+  /**
+   * Run a fingertip along the crease you just made to sharpen it, as you would
+   * press a real fold. Purely a delight: nothing waits on it.
+   */
+  private updateSharpen(): void {
+    const sh = this.sharp;
+    if (!sh || this.simClock > sh.until || this.grab) return;
+    const ab = this.tmpV.copy(sh.b).sub(sh.a);
+    const len = ab.length();
+    if (len < 1e-4) return;
+    for (const ptr of [this.hub.left, this.hub.right]) {
+      if (ptr.kind !== 'hand') continue;
+      const ap = this.tmpV2.copy(ptr.tipPos).sub(sh.a);
+      const t = ap.dot(ab) / (len * len);
+      if (t < -0.05 || t > 1.05) {
+        sh.last.delete(ptr.id);
+        continue;
+      }
+      const closest = ab.clone().multiplyScalar(Math.max(0, Math.min(1, t))).add(sh.a);
+      if (closest.distanceTo(ptr.tipPos) > 0.018) {
+        sh.last.delete(ptr.id);
+        continue;
+      }
+      const prev = sh.last.get(ptr.id);
+      if (prev === undefined) {
+        sh.last.set(ptr.id, t);
+        continue;
+      }
+      // Measure from the last registered point, so slow, steady strokes count.
+      const moved = Math.abs(t - prev);
+      if (moved < 0.04) continue;
+      sh.last.set(ptr.id, t);
+      sh.done += moved;
+      const local = this.env.station.worldToLocal(ptr.tipPos.clone());
+      this.burst(local, local, 2, 0xfff1c8);
+      if (this.simClock - sh.sound > 0.08) {
+        const finished = sh.done > 0.75;
+        sound.sharpen(finished);
+        sh.sound = this.simClock;
+        if (finished) {
+          this.glowLevel = 0.5;
+          const a = this.env.station.worldToLocal(sh.a.clone());
+          const b = this.env.station.worldToLocal(sh.b.clone());
+          this.burst(a, b, 14, 0xffe6a8);
+          this.sharp = null;
+          return;
+        }
+      }
     }
   }
 
@@ -870,6 +982,9 @@ export class FoldGame extends createSystem({}) {
     this.opener = new Opener(this.sheet, this.chapter.model);
     this.lifeMeasured = false;
     sound.sparkle();
+    // A ring of sparks lifts off the mat with the model.
+    const c = this.env.station.worldToLocal(this.env.board.getWorldPosition(new Vector3()));
+    this.burst(c.clone().add(new Vector3(-0.08, 0, 0)), c.clone().add(new Vector3(0.08, 0, 0)), 22, 0xffe2a8);
   }
 
   private updateLife(dt: number): void {
@@ -958,6 +1073,8 @@ export class FoldGame extends createSystem({}) {
     this.buildTrophies();
     this.drawChapterCards();
     sound.bloom();
+    // Lanterns rise from the lake; the last chapter releases every one.
+    this.env.celebrate(!this.daily && i === 5 ? -1 : 4);
     this.nextBtn.setLabel(
       this.daily ? 'Back to chapters' : i === 5 ? 'Daily Fold' : 'Next chapter',
       this.daily ? `streak ${this.save.daily.streak} day${this.save.daily.streak === 1 ? '' : 's'}` : `folded in ${fmtTime(secs)}`,
@@ -1148,6 +1265,13 @@ export class FoldGame extends createSystem({}) {
     }
 
     const prev = this.theta;
+    if (this.demoHold !== null) {
+      this.theta = p.target * this.demoHold;
+      this.guides.grabbed = true;
+      this.view.pose(p, this.theta);
+      this.guides.update(this.sheet, this.theta, time);
+      return;
+    }
     if (this.settling === 'forward') {
       this.theta += (p.target - this.theta) * Math.min(1, dt * 12) + Math.sign(p.target) * dt * 0.8;
       if (Math.abs(this.theta) >= Math.abs(p.target) - 0.004) {
@@ -1207,6 +1331,7 @@ export class FoldGame extends createSystem({}) {
     }
     const dt = Math.min(delta, 1 / 20);
     this.stateT += dt;
+    this.simClock += dt;
 
     if (vis === VisibilityState.NonImmersive) {
       this.placeFlatCamera(time);
@@ -1239,7 +1364,11 @@ export class FoldGame extends createSystem({}) {
       }
       case 'fold':
         this.updateFold(dt, time, consumed);
-        this.undoBtn.enabled = this.stepIndex > 0;
+        this.updateSharpen();
+        if (this.undoBtn.enabled !== this.stepIndex > 0) {
+          this.undoBtn.enabled = this.stepIndex > 0;
+          this.undoBtn.draw();
+        }
         break;
       case 'life':
         this.updateLife(dt);
@@ -1283,6 +1412,14 @@ export class FoldGame extends createSystem({}) {
     if (!this.flatCamSet) {
       this.env.recenter(eye, 0);
       this.flatCamSet = true;
+    }
+    if (this.camOverride) {
+      const o = this.camOverride;
+      cam.position.set(o.pos[0], eye.y + o.pos[1], o.pos[2]);
+      cam.lookAt(o.look[0], eye.y + o.look[1], o.look[2]);
+      cam.fov = o.fov;
+      cam.updateProjectionMatrix();
+      return;
     }
     // A gentle drift so the diorama reads as 3D.
     const sway = Math.sin(time * 0.25) * 0.015;
