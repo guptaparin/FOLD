@@ -23,4 +23,5 @@
 3. Sound re-check → 4/6 pass, 7 follow-ups (koto sharp, snap too thin, duck pumping…). Applied; re-measured.
 4. Director review → 2 blockers (edge-on flip frames, stray frames before 720) + 6 should-fix. Applied.
 5. Director re-review → blockers fixed; 2 should-fix (caption hold, swan headroom) + hand pop + framing. Applied.
-6. Final sign-off → see delivery note.
+6. Sign-off review → fox folds whipped past 90° (seen from above) + shelf glow. Fixed by easing the flap's projected travel; largest in-shot frame change in the fox section fell from 22 to 18 (mean abs diff), spread evenly over each pull.
+7. Final checks → no edge-on turn-over frames, clean cuts at 560/640/720/800, no light-wipe pump (luminance rises monotonically to the card), end card complete 1.9 s.
