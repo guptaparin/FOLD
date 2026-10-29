@@ -75,7 +75,7 @@ export class Hand {
       roughness: 0.48,
       metalness: 0,
       emissive: new Color('#3a2a1e'),
-      emissiveIntensity: 0.25,
+      emissiveIntensity: 0.12,
     });
     // Soft rim light so the hand reads against dark paper.
     this.mat.onBeforeCompile = (shader) => {
@@ -83,7 +83,7 @@ export class Hand {
         '#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
         float rim = 1.0 - max(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0)), 0.0);
-        totalEmissiveRadiance += vec3(1.0, 0.86, 0.66) * pow(rim, 2.4) * 0.55;`,
+        totalEmissiveRadiance += vec3(1.0, 0.86, 0.66) * pow(rim, 2.4) * 0.4;`,
       );
     };
     const cyl = new CylinderGeometry(1, 1, 1, 14, 1, true);
@@ -108,9 +108,15 @@ export class Hand {
     this.palm.position.set(...PALM);
     this.palm.rotation.set(0.15, -0.35, 0.12);
     this.palm.castShadow = true;
-    this.wrist = new Mesh(cyl, this.mat);
+    // Forearm: closed and gently tapered, long enough to leave the frame, so
+    // the camera never sees into an open tube.
+    this.wrist = new Mesh(new CylinderGeometry(1.3, 1, 1, 20, 1, false), this.mat);
     this.wrist.castShadow = true;
-    this.root.add(this.palm, this.wrist);
+    const wristCap = new Mesh(sph, this.mat);
+    wristCap.scale.set(0.024, 0.02, 0.024);
+    wristCap.position.set(...WRIST);
+    wristCap.castShadow = true;
+    this.root.add(this.palm, this.wrist, wristCap);
     // Palm links to each finger base.
     for (let i = 0; i < CHAINS.length; i++) {
       const b = new Mesh(cyl, this.mat);
@@ -147,7 +153,7 @@ export class Hand {
     }
     for (const b of bases) this.bone(this.bones[bi++], palm, b, 0.009);
     const w = new Vector3(...WRIST);
-    this.bone(this.wrist, w, w.clone().add(new Vector3(0.012, 0.03, 0.1)), 0.02);
+    this.bone(this.wrist, w, w.clone().add(new Vector3(0.036, 0.09, 0.3)), 0.021);
   }
 
   setOpacity(o: number): void {

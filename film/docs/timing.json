@@ -319,15 +319,15 @@
  "type": [
   {
    "text": "Fold real paper.",
-   "in": 126,
-   "out": 200,
-   "where": "crease"
+   "in": 116,
+   "out": 178,
+   "where": "sky"
   },
   {
    "text": "with your hands.",
-   "in": 168,
-   "out": 236,
-   "where": "low"
+   "in": 130,
+   "out": 186,
+   "where": "sky2"
   },
   {
    "text": "Every fold comes alive.",

@@ -414,9 +414,9 @@ const typeEls = T.type.map((t) => {
   el.className = 'type';
   const words = t.text.split(' ');
   el.innerHTML = `<span class="plate">${words.map((w) => `<span class="w" style="display:inline-block">${w}</span>`).join(' ')}</span>`;
-  const size = t.where === 'sky' ? 66 : 72;
+  const size = t.where.startsWith('sky') ? 66 : 72;
   el.style.fontSize = `${size}px`;
-  el.style.top = t.where === 'sky' ? '12%' : t.where === 'crease' ? '64%' : '72%';
+  el.style.top = { sky: '12%', sky2: '21%', crease: '64%' }[t.where as string] ?? '72%';
   if (t.text.endsWith('hands.')) el.style.fontStyle = 'italic';
   typesEl.appendChild(el);
   return { el, t, words: [...el.querySelectorAll<HTMLSpanElement>('.w')] };
@@ -846,20 +846,25 @@ function shoot(n: number): void {
   if (n < 160) {
     // Three-quarter macro of the whole sheet; the flap comes toward camera.
     const k = smooth(range(n, 0, 160));
-    const pos = lerpV(V(0.17, -0.235, -0.15), V(0.13, -0.22, -0.16), k);
-    const look = lerpV(V(-0.005, -0.425, -0.39), V(0.0, -0.43, -0.385), k);
+    // Once the flap lands, follow the folded half and ease back a little.
+    const c = inOut(range(n, 84, 150));
+    const pos = lerpV(V(0.17, -0.235, -0.15), V(0.13, -0.22, -0.16), k).add(V(0, 0.012, 0.045).multiplyScalar(c));
+    const look = lerpV(V(-0.005, -0.425, -0.39), V(0.0, -0.43, -0.385), k).add(V(0, 0, 0.045).multiplyScalar(c));
     setCam(pos, look, mix(27, 29, k), n);
   } else if (n < 240) {
     const k = inOut(range(n, 160, 236));
-    const pos = lerpV(V(0.13, -0.22, -0.16), overhead(0.42, 0, 0), k);
-    const look = lerpV(V(0.0, -0.43, -0.385), BOARD_C, k);
+    const pos = lerpV(V(0.13, -0.208, -0.115), overhead(0.42, 0, 0), k);
+    const look = lerpV(V(0.0, -0.43, -0.34), BOARD_C, k);
     setCam(pos, look, mix(29, 38, k), n);
   } else if (n < 400) {
     const k = range(n, 240, 400);
     setCam(overhead(0.42 - k * 0.03, Math.sin(k * 3) * 0.004), BOARD_C, 38, n, 0.5);
   } else if (n < 480) {
-    const k = inOut(range(n, 400, 470));
-    setCam(overhead(0.39 - 0.07 * k, 0, 0), BOARD_C, mix(38, 36, k), n, 0.5);
+    // The swan base is long: widen while it is folded, then settle in to
+    // exactly where the lake shot picks up.
+    const up = inOut(range(n, 400, 418));
+    const dn = inOut(range(n, 448, 480));
+    setCam(overhead(mix(mix(0.39, 0.47, up), 0.36, dn), 0, 0), BOARD_C, mix(38, 36, dn), n, 0.5);
   } else if (n < 560) {
     // Rise and turn to watch the swan glide into the lake diorama.
     const k = inOut(range(n, 482, 552));

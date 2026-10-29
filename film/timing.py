@@ -66,8 +66,8 @@ life = [
 ]
 
 type_cards = [
-    {"text": "Fold real paper.", "in": 126, "out": 200, "where": "crease"},
-    {"text": "with your hands.", "in": 168, "out": 236, "where": "low"},
+    {"text": "Fold real paper.", "in": 116, "out": 178, "where": "sky"},
+    {"text": "with your hands.", "in": 130, "out": 186, "where": "sky2"},
     {"text": "Every fold comes alive.", "in": 500, "out": 556, "where": "low"},
     {"text": "Six chapters.", "in": 730, "out": 796, "where": "low"},
     {"text": "A new sheet every day.", "in": 808, "out": 872, "where": "sky"},
