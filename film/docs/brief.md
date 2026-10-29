@@ -15,9 +15,11 @@
 | sound | music + sfx, synthesised in code (paper crinkle grains, crease snaps, koto, pad) | ASMR detail with full control; no licensed audio. |
 | autonomy | unattended | The user asked for a finished film. |
 | toolchain | Three.js page (Vite) driven frame by frame by Playwright, encoded with ffmpeg | Reuses the game's own renderer and engine. |
-| sign-off | FOLD · "a little paper world, folded by hand" · Made for Meta Quest & Meta VR Glasses · fold-blond.vercel.app | Name, platform, call to action. |
+| sign-off | FOLD · "a little paper world, folded by hand" · For Meta Quest · Built with Meta’s Immersive Web SDK · fold-blond.vercel.app | Name, platform, call to action. |
 
 ## Meta brand note
-The official Meta logo is not redrawn (logos must come from the source file). The end card sets
-"Made for Meta Quest & Meta VR Glasses" in type and reserves a slot: drop Meta's official SVG at
-`film/public/meta-logo.svg` and re-render to place it. Check Meta's brand guidelines before using the mark.
+Meta appears as a platform line in type, phrased the way Meta's publishing brand guidelines allow
+third-party apps to reference Meta Quest ("for Meta Quest"), plus the SDK credit. The Meta logo is not
+used: Meta requires Brand Review approval for any use of its logo. The hidden `meta-logo.svg` slot on the
+end card must stay empty unless that approval is granted. Meta VR Glasses are not named because they have
+not shipped, so the game is untested on them.

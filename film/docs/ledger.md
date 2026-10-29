@@ -11,8 +11,8 @@
 | 7 | **All audio synthesised** (Karplus–Strong koto, pad, granular paper) | No licensing; every sound is placed by `timing.json` events | Sample packs |
 | 8 | **Snaps 14–20 dB above music** | Paper is the hero; music is the room | Equal balance (paper got lost) |
 | 9 | **Koto note per crease climbing the pentatonic scale** | The music is played *by* the folding: progress is audible | Fixed melody unrelated to action |
-| 10 | **Meta shown as the platform line, not a redrawn logo** | Meta's marks must come from Meta's official brand assets and follow its guidelines; a hand-drawn imitation would misuse the mark | Drawing the infinity logo by hand |
-| 11 | **Official-logo slot** `film/public/meta-logo.svg` | Drop in the official file and re-render the end card only; the layout already reserves its space | — |
+| 10 | **Meta shown as a platform line + SDK credit, no logo** | Meta requires Brand Review approval for any logo use; "for Meta Quest" is the phrasing its guidelines allow | Redrawing the logo; "Made for … Meta VR Glasses" (unreleased device, reads as certification) |
+| 11 | **Captions tightened by fact-check**: "Fold paper / with your hands.", "Every model comes alive." | "Fold real paper" could read as physical paper in MR; animation is per model, not per crease | Original wording |
 | 12 | **Warm key light + tilt-shift** | The game's night palette read cold in macro; miniature focus makes the desk feel tiny and handmade | Neutral light (lavender paper) |
 | 13 | **Captions placed low or in the sky, never over a model** | Fixes from the style frames: the lake line sat on the moon | Centred captions |
 | 14 | **End on a lantern light-wipe into the washi card** | The game's reward (lanterns) becomes the transition into the sign-off | Fade to black |

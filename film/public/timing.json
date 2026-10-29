@@ -318,7 +318,7 @@
  ],
  "type": [
   {
-   "text": "Fold real paper.",
+   "text": "Fold paper",
    "in": 116,
    "out": 178,
    "where": "sky"
@@ -330,7 +330,7 @@
    "where": "sky2"
   },
   {
-   "text": "Every fold comes alive.",
+   "text": "Every model comes alive.",
    "in": 500,
    "out": 556,
    "where": "sky"
