@@ -377,10 +377,10 @@ function handlePointStation(q: Seq, prep: PreparedStep, theta: number, sheet: Sh
   return v;
 }
 
-function placeHand(p: Vector3, pinch: number, n: number, yaw = 0): void {
+function placeHand(p: Vector3, pinch: number, n: number, yaw = 0, pitch = -0.62): void {
   hand.root.position.copy(p);
   // Fingers reach forward and down onto the mat, wrist toward the viewer.
-  hand.root.rotation.set(-0.62 + Math.sin(n * 0.05) * 0.02, -0.55 + yaw, 0.1);
+  hand.root.rotation.set(pitch + Math.sin(n * 0.05) * 0.02, -0.55 + yaw, 0.1);
   hand.pose(pinch);
 }
 
@@ -416,8 +416,13 @@ const typeEls = T.type.map((t) => {
   el.innerHTML = `<span class="plate">${words.map((w) => `<span class="w" style="display:inline-block">${w}</span>`).join(' ')}</span>`;
   const size = t.where.startsWith('sky') ? 66 : 72;
   el.style.fontSize = `${size}px`;
-  el.style.top = { sky: '12%', sky2: '21%', crease: '64%' }[t.where as string] ?? '72%';
+  el.style.top = { sky: '12%', skyL: '12%', sky2: '21%', crease: '64%' }[t.where as string] ?? '72%';
   if (t.text.endsWith('hands.')) el.style.fontStyle = 'italic';
+  if (t.where === 'skyL') {
+    // Keep clear of the moon, which crosses the top-centre as the camera tilts.
+    el.style.textAlign = 'left';
+    el.style.paddingLeft = '8%';
+  }
   typesEl.appendChild(el);
   return { el, t, words: [...el.querySelectorAll<HTMLSpanElement>('.w')] };
 });
@@ -500,7 +505,9 @@ function updateEnd(n: number): void {
   });
   // A slow light sweep keeps the hold alive.
   const sw2 = endEl.querySelector('.sweep') as HTMLElement;
-  const x = -40 + (e / 80) * 180;
+  const x = -40 + (e / 80) * 150;
+  // A gentle push-in through the hold, so the last second never freezes.
+  endEl.style.transform = `scale(${(1 + 0.035 * inOut(range(n, 880, 960))).toFixed(5)})`;
   sw2.style.background = `linear-gradient(105deg, rgba(255,255,255,0) ${x - 18}%, rgba(255,246,226,0.55) ${x}%, rgba(255,255,255,0) ${x + 18}%)`;
 }
 
@@ -709,7 +716,7 @@ function step(n: number): void {
           if (n < f.pinch) {
             // Travel from the last crease to this handle along an arc.
             const k = inOut(range(n, start, f.pinch));
-            const a = prev ? handlePointStation(fox, fox.snaps[i - 1].prep, fox.snaps[i - 1].prep.target, fox.snaps[i - 1].sheet, 0.002) : BOARD_C.clone().add(V(0.12, 0.1, 0.1));
+            const a = prev ? handlePointStation(fox, fox.snaps[i - 1].prep, fox.snaps[i - 1].prep.target, fox.snaps[i - 1].sheet, 0.002) : BOARD_C.clone().add(V(0.16, 0.025, 0.03)); // enter low from the side, never near the lens
             const b = handlePointStation(fox, sn.prep, 0, sn.sheet, 0.002);
             p = a.lerp(b, k);
             p.y += Math.sin(k * Math.PI) * 0.03;
@@ -728,7 +735,8 @@ function step(n: number): void {
         }
       }
       if (p) {
-        placeHand(p, pinch, n, 0.15);
+        // Flatter wrist from overhead, so it never reads as a blob end-on.
+        placeHand(p, pinch, n, 0.15, -0.3);
         hand.setOpacity(n > 368 ? 1 - smooth(range(n, 368, 374)) : smooth(range(n, 230, 238)));
       }
     } else {
@@ -792,10 +800,12 @@ function step(n: number): void {
     const st = swanTo!.st;
     const c = swanCreature;
     c.outer.position.lerpVectors(swanFrom!.pos, swanTo!.pos, g);
-    c.outer.position.y += Math.sin(g * Math.PI) * 0.06 + smooth(range(n, 480, 500)) * 0.02 * (1 - g);
+    c.outer.position.y += Math.sin(g * Math.PI) * 0.035 + smooth(range(n, 480, 500)) * 0.02 * (1 - g);
     c.outer.quaternion.slerpQuaternions(swanFrom!.quat, swanTo!.quat, g);
+    // Shrink to lake scale early so the opened swan never looms over the lens.
+    const sh = outCubic(range(n, 492, 526));
     c.inner.quaternion.slerpQuaternions(new Quaternion(), st.q, g);
-    c.inner.scale.setScalar(mix(1, st.scale, g));
+    c.inner.scale.setScalar(mix(1, st.scale, sh));
     c.inner.position.lerpVectors(V(0, 0, 0), st.pivot, g);
     if (n >= L.land!) {
       const t = (n - L.land!) / FPS;

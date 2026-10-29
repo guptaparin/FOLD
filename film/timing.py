@@ -68,9 +68,9 @@ life = [
 type_cards = [
     {"text": "Fold real paper.", "in": 116, "out": 178, "where": "sky"},
     {"text": "with your hands.", "in": 130, "out": 186, "where": "sky2"},
-    {"text": "Every fold comes alive.", "in": 500, "out": 556, "where": "low"},
+    {"text": "Every fold comes alive.", "in": 500, "out": 556, "where": "sky"},
     {"text": "Six chapters.", "in": 730, "out": 796, "where": "low"},
-    {"text": "A new sheet every day.", "in": 808, "out": 872, "where": "sky"},
+    {"text": "A new sheet every day.", "in": 808, "out": 872, "where": "skyL"},
 ]
 
 # Act timing for the diorama shots (seconds of act time per film second).

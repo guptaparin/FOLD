@@ -64,6 +64,7 @@ export class Hand {
   private joints: Mesh[] = [];
   private palm: Mesh;
   private wrist: Mesh;
+  private wristCap: Mesh;
   private mat: MeshStandardMaterial;
   private up = new Vector3(0, 1, 0);
   private q = new Quaternion();
@@ -108,15 +109,18 @@ export class Hand {
     this.palm.position.set(...PALM);
     this.palm.rotation.set(0.15, -0.35, 0.12);
     this.palm.castShadow = true;
-    // Forearm: closed and gently tapered, long enough to leave the frame, so
-    // the camera never sees into an open tube.
-    this.wrist = new Mesh(new CylinderGeometry(1.3, 1, 1, 20, 1, false), this.mat);
+    // Wrist: a short closed stub with rounded ends, like tracked hands that
+    // stop at the wrist, so no camera angle sees into an open tube.
+    this.wrist = new Mesh(new CylinderGeometry(1, 1, 1, 20, 1, false), this.mat);
     this.wrist.castShadow = true;
-    const wristCap = new Mesh(sph, this.mat);
-    wristCap.scale.set(0.024, 0.02, 0.024);
-    wristCap.position.set(...WRIST);
-    wristCap.castShadow = true;
-    this.root.add(this.palm, this.wrist, wristCap);
+    this.wristCap = new Mesh(sph, this.mat);
+    this.wristCap.scale.setScalar(0.02);
+    this.wristCap.castShadow = true;
+    const wristBase = new Mesh(sph, this.mat);
+    wristBase.scale.set(0.022, 0.019, 0.022);
+    wristBase.position.set(...WRIST);
+    wristBase.castShadow = true;
+    this.root.add(this.palm, this.wrist, this.wristCap, wristBase);
     // Palm links to each finger base.
     for (let i = 0; i < CHAINS.length; i++) {
       const b = new Mesh(cyl, this.mat);
@@ -153,7 +157,9 @@ export class Hand {
     }
     for (const b of bases) this.bone(this.bones[bi++], palm, b, 0.009);
     const w = new Vector3(...WRIST);
-    this.bone(this.wrist, w, w.clone().add(new Vector3(0.036, 0.09, 0.3)), 0.021);
+    const end = w.clone().add(new Vector3(0.012, 0.03, 0.1).multiplyScalar(0.6));
+    this.bone(this.wrist, w, end, 0.02);
+    this.wristCap.position.copy(end);
   }
 
   setOpacity(o: number): void {

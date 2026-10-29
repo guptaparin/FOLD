@@ -333,7 +333,7 @@
    "text": "Every fold comes alive.",
    "in": 500,
    "out": 556,
-   "where": "low"
+   "where": "sky"
   },
   {
    "text": "Six chapters.",
@@ -345,7 +345,7 @@
    "text": "A new sheet every day.",
    "in": 808,
    "out": 872,
-   "where": "sky"
+   "where": "skyL"
   }
  ],
  "acts": {
