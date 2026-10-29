@@ -13,6 +13,6 @@ d = np.maximum(0, np.diff(e))
 errs = []
 for f in T['folds']:
     i = int(f['snap'] / 30 / 0.002)
-    k = int(np.argmax(d[i - 50:i + 50])) - 50
+    k = int(np.argmax(d[i - 20:i + 20])) - 20  # search ±40 ms
     errs.append(round(k * 0.002 * 30, 2))
 print(json.dumps({'snap_offsets_frames': errs, 'max_abs_frames': max(abs(v) for v in errs)}))
