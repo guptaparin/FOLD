@@ -147,8 +147,8 @@
   {
    "model": "fox",
    "step": 0,
-   "pinch": 249,
-   "pullStart": 250,
+   "pinch": 245,
+   "pullStart": 246,
    "snap": 260,
    "hand": true,
    "kind": "fold"
@@ -156,8 +156,8 @@
   {
    "model": "fox",
    "step": 1,
-   "pinch": 269,
-   "pullStart": 270,
+   "pinch": 265,
+   "pullStart": 266,
    "snap": 280,
    "hand": true,
    "kind": "fold"
@@ -165,8 +165,8 @@
   {
    "model": "fox",
    "step": 2,
-   "pinch": 289,
-   "pullStart": 290,
+   "pinch": 285,
+   "pullStart": 286,
    "snap": 300,
    "hand": true,
    "kind": "fold"
@@ -174,8 +174,8 @@
   {
    "model": "fox",
    "step": 3,
-   "pinch": 309,
-   "pullStart": 310,
+   "pinch": 305,
+   "pullStart": 306,
    "snap": 320,
    "hand": true,
    "kind": "fold"
@@ -183,8 +183,8 @@
   {
    "model": "fox",
    "step": 4,
-   "pinch": 329,
-   "pullStart": 330,
+   "pinch": 325,
+   "pullStart": 326,
    "snap": 340,
    "hand": true,
    "kind": "fold"
@@ -192,8 +192,8 @@
   {
    "model": "fox",
    "step": 5,
-   "pinch": 349,
-   "pullStart": 350,
+   "pinch": 345,
+   "pullStart": 346,
    "snap": 360,
    "hand": true,
    "kind": "flip"
@@ -331,8 +331,8 @@
   },
   {
    "text": "Every model comes alive.",
-   "in": 488,
-   "out": 558,
+   "in": 480,
+   "out": 560,
    "where": "skyL"
   },
   {
@@ -432,12 +432,12 @@
   },
   {
    "type": "pinch",
-   "frame": 249,
+   "frame": 245,
    "hand": true
   },
   {
    "type": "pull",
-   "frame": 250,
+   "frame": 246,
    "end": 260,
    "kind": "fold"
   },
@@ -449,12 +449,12 @@
   },
   {
    "type": "pinch",
-   "frame": 269,
+   "frame": 265,
    "hand": true
   },
   {
    "type": "pull",
-   "frame": 270,
+   "frame": 266,
    "end": 280,
    "kind": "fold"
   },
@@ -466,12 +466,12 @@
   },
   {
    "type": "pinch",
-   "frame": 289,
+   "frame": 285,
    "hand": true
   },
   {
    "type": "pull",
-   "frame": 290,
+   "frame": 286,
    "end": 300,
    "kind": "fold"
   },
@@ -483,12 +483,12 @@
   },
   {
    "type": "pinch",
-   "frame": 309,
+   "frame": 305,
    "hand": true
   },
   {
    "type": "pull",
-   "frame": 310,
+   "frame": 306,
    "end": 320,
    "kind": "fold"
   },
@@ -500,12 +500,12 @@
   },
   {
    "type": "pinch",
-   "frame": 329,
+   "frame": 325,
    "hand": true
   },
   {
    "type": "pull",
-   "frame": 330,
+   "frame": 326,
    "end": 340,
    "kind": "fold"
   },
@@ -517,12 +517,12 @@
   },
   {
    "type": "pinch",
-   "frame": 349,
+   "frame": 345,
    "hand": true
   },
   {
    "type": "pull",
-   "frame": 350,
+   "frame": 346,
    "end": 360,
    "kind": "flip"
   },

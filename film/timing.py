@@ -43,7 +43,8 @@ fold("tent", 0, 40, 46, 120)
 FOX_KINDS = ["fold", "fold", "fold", "fold", "fold", "flip"]
 for i in range(6):
     snap = 260 + i * BEAT
-    fold("fox", i, snap - 11, snap - 10, snap, True, FOX_KINDS[i])
+    # A 14-frame pull keeps the flap (and the hand riding it) from whipping past the lens.
+    fold("fox", i, snap - 15, snap - 14, snap, True, FOX_KINDS[i])
 
 # Swan flurry: seven folds, one per half-beat; the hand steps back.
 SWAN_KINDS = ["fold", "fold", "flip", "fold", "fold", "fold", "fold"]
@@ -68,7 +69,7 @@ life = [
 type_cards = [
     {"text": "Fold paper", "in": 116, "out": 178, "where": "sky"},
     {"text": "with your hands.", "in": 130, "out": 186, "where": "sky2"},
-    {"text": "Every model comes alive.", "in": 488, "out": 558, "where": "skyL"},
+    {"text": "Every model comes alive.", "in": 480, "out": 560, "where": "skyL"},
     {"text": "Six chapters.", "in": 730, "out": 796, "where": "low"},
     {"text": "A new sheet every day.", "in": 808, "out": 872, "where": "skyL"},
 ]

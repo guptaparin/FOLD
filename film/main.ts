@@ -300,7 +300,7 @@ CHAPTERS.forEach((ch, i) => {
   o.position.copy(st.pivot).add(new Vector3(0, 0.01, 0));
   o.add(q.view.root);
   holder.add(o);
-  holder.position.set(-0.33 + i * 0.13, LAYOUT.deskY, -0.52 - Math.abs(i - 2.5) * 0.025);
+  holder.position.set(-0.26 + i * 0.13, LAYOUT.deskY, -0.52 - Math.abs(i - 2.5) * 0.025);
   holder.rotation.y = 0.35 - i * 0.12;
   shelf.add(holder);
   keepsakes.push(holder);
@@ -876,22 +876,22 @@ function shoot(n: number): void {
     // exactly where the lake shot picks up.
     const up = inOut(range(n, 400, 418));
     const dn = inOut(range(n, 448, 480));
-    setCam(overhead(mix(mix(0.39, 0.47, up), 0.42, dn), 0, 0), BOARD_C, mix(38, 36, dn), n, 0.5);
+    setCam(overhead(mix(mix(0.39, 0.47, up), 0.47, dn), 0, 0), BOARD_C, mix(38, 36, dn), n, 0.5);
   } else if (n < 560) {
     // Rise and turn to watch the swan glide into the lake diorama.
     const k = inOut(range(n, 482, 552));
-    const pos = lerpV(overhead(0.42), V(0.075, -0.29, -0.43), k);
+    const pos = lerpV(overhead(0.47), V(0.075, -0.29, -0.43), k);
     const look = lerpV(BOARD_C, V(-0.03, -0.445, -0.84), k);
     setCam(pos, look, mix(36, 38, k), n);
   } else if (n < 640) {
     const k = range(n, 560, 640);
-    setCam(V(-0.2 + k * 0.05, -0.335, -0.52), V(0.03 + k * 0.02, -0.465, -0.83), 40, n);
+    setCam(V(-0.2 + k * 0.05, -0.335, -0.52), V(-0.005 + k * 0.04, -0.465, -0.83), 40, n);
   } else if (n < 720) {
     const k = range(n, 640, 720);
     setCam(V(0.02 - k * 0.02, -0.3, -0.45 - k * 0.02), V(0.02, -0.36, -0.84), 44, n);
   } else if (n < 800) {
     const k = inOut(range(n, 716, 800));
-    setCam(V(-0.12 + k * 0.22, -0.4, -0.02), V(-0.06 + k * 0.12, -0.47, -0.53), 42, n);
+    setCam(V(-0.1 + k * 0.22, -0.4, 0.0), V(-0.04 + k * 0.14, -0.47, -0.53), 46, n);
   } else {
     // Wide over the lake; tilt up with the lanterns.
     const k = inOut(range(n, 800, 880));
