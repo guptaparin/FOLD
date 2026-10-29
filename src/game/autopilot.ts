@@ -57,6 +57,9 @@ export async function autopilot(api: FoldApi, chapters: number[], launch: () => 
   }
   await sleep(800);
   await r.dispatch('set_input_mode', { mode: 'hand' });
+  // Look down at the folding mat, as a seated player does, so the paper and
+  // the hand sit in the middle of the frame instead of the bottom edge.
+  await r.dispatch('set_transform', { device: 'headset', orientation: { pitch: -32, yaw: 0, roll: 0 } });
   await sleep(600);
   // Rest the left hand out of shot; the right hand does the folding.
   await r.dispatch('set_transform', { device: 'hand-left', position: { x: -0.32, y: 1.18, z: -0.22 } });
@@ -74,7 +77,10 @@ export async function autopilot(api: FoldApi, chapters: number[], launch: () => 
   const move = (v: Vec, duration: number) =>
     r.dispatch('animate_to', { device: 'hand-right', position: handAt(v), duration });
 
+  const names = ['Shelter', 'Lantern Boat', 'Little Fox', 'Water Cup', 'Paper Plane', 'Moon Swan'];
+  console.log('%c[FOLD autopilot] Recording can start now.', 'color:#ffc56b;font-weight:bold');
   for (const ch of chapters) {
+    console.log(`%c[FOLD autopilot] Chapter ${ch + 1}: ${names[ch] ?? ch}`, 'color:#ffc56b');
     api.start(ch);
     await until(() => api.state().state === 'fold');
     for (let guard = 0; guard < 12 && api.state().state === 'fold'; guard++) {
@@ -114,5 +120,6 @@ export async function autopilot(api: FoldApi, chapters: number[], launch: () => 
     await until(() => api.state().state === 'done', 120000);
     await sleep(2500);
   }
+  console.log('%c[FOLD autopilot] FINISHED. You can stop recording.', 'color:#7be08a;font-weight:bold;font-size:14px');
   return 'Autopilot finished.';
 }
