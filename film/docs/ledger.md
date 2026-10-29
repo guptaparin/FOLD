@@ -9,11 +9,13 @@
 | 5 | **90 bpm, 1 beat = 20 frames** | Integer frames per beat at 30 fps makes every cut and crease exactly on the grid | 96/100 bpm (fractional frames) |
 | 6 | **Sound: ASMR paper first, music second** | The brief asked for ASMR, not generic stock music: paper crackle follows fold speed, each crease snaps, turn-overs flutter | Licensed track (generic, rights) |
 | 7 | **All audio synthesised** (Karplus–Strong koto, pad, granular paper) | No licensing; every sound is placed by `timing.json` events | Sample packs |
-| 8 | **Snaps 14–20 dB above music** | Paper is the hero; music is the room | Equal balance (paper got lost) |
+| 8 | **Paper is the hero**: score ducks 8 dB under every fold, ostinato never plucks on a pull, snap is a high paper knock + mid body (no sub kick) | Sound critic: pad masked the foley by 4–12 dB and the snap was 91% sub-200 Hz | Constant music bed; kick-drum snap |
 | 9 | **Koto note per crease climbing the pentatonic scale** | The music is played *by* the folding: progress is audible | Fixed melody unrelated to action |
 | 10 | **Meta shown as a platform line + SDK credit, no logo** | Meta requires Brand Review approval for any logo use; "for Meta Quest" is the phrasing its guidelines allow | Redrawing the logo; "Made for … Meta VR Glasses" (unreleased device, reads as certification) |
 | 11 | **Captions tightened by fact-check**: "Fold paper / with your hands.", "Every model comes alive." | "Fold real paper" could read as physical paper in MR; animation is per model, not per crease | Original wording |
 | 12 | **Warm key light + tilt-shift** | The game's night palette read cold in macro; miniature focus makes the desk feel tiny and handmade | Neutral light (lavender paper) |
 | 13 | **Captions placed low or in the sky, never over a model** | Fixes from the style frames: the lake line sat on the moon | Centred captions |
 | 14 | **End on a lantern light-wipe into the washi card** | The game's reward (lanterns) becomes the transition into the sign-off | Fade to black |
-| 15 | **H.264 CRF 16, preset slow, -14 LUFS / ≤ -1 dBTP** | Upload targets (YouTube/Devpost) normalise to -14; slow preset chosen for final quality | veryfast (fine for drafts only) |
+| 15 | **H.264 CRF 16, preset slow; audio -16 LUFS, ≤ -1 dBTP after AAC** | At -14 the limiter took 5–14 dB off the snaps; -16 keeps ASMR transients (crest within ~2 dB of the raw mix). Platforms turn louder files down, not quieter ones up much, so -16 costs little | -14 LUFS with heavy limiting |
+| 16 | **Crinkle = resonant pings + noise, panned with the flap; mono-safe panning; decorrelated room** | Sound critic: crinkle read as static, small ITDs comb-filtered in mono | White-noise grains, fixed pan |
+| 17 | **Short capped wrist** for the hand | A long forearm rose toward the overhead lens and hid the fox; tracked hands stop at the wrist anyway | Long forearm; open tube |

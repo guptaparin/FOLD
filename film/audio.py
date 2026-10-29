@@ -51,7 +51,9 @@ def place(bus, sig, start, pan=0.0, gain=1.0):
         return
     th = (pan + 1) * np.pi / 4
     gl, gr = np.cos(th), np.sin(th)
-    itd = int(abs(pan) * 0.00045 * SR)  # up to ~0.45 ms: close, binaural-ish
+    # Interaural delay only for wide pans: small delays comb-filter in mono
+    # (phone speakers) and kill the crinkle's top end.
+    itd = int(abs(pan) * 0.00045 * SR) if abs(pan) >= 0.5 else 0
     for ch, g, d in ((0, gl, itd if pan > 0 else 0), (1, gr, itd if pan < 0 else 0)):
         s = start + d
         if s >= N:
@@ -81,19 +83,28 @@ def noise(n):
 def koto(freq, dur=2.4, bright=0.55):
     """Karplus-Strong pluck with a soft body resonance."""
     n = int(dur * SR)
-    p = max(2, int(SR / freq))
+    # Loop length minus the averaging filter's half-sample delay; the
+    # fraction is made up by a first-order allpass so high notes stay in tune.
+    pf = SR / freq - 0.5
+    p = max(2, int(pf))
+    frac = pf - p
+    C = (1 - frac) / (1 + frac)
     buf = rng.uniform(-1, 1, p)
     buf = lp(buf, 2000 + 5000 * bright, 1)
     out = np.zeros(n)
     idx = 0
     damp = 0.996
     prev = 0.0
+    ax = 0.0
+    ay = 0.0
     b = buf.copy()
     for i in range(n):
         cur = b[idx]
         nxt = b[(idx + 1) % p]
         v = damp * 0.5 * (cur + nxt)
-        b[idx] = v
+        y = C * v + ax - C * ay
+        ax, ay = v, y
+        b[idx] = y
         out[i] = cur * 0.65 + prev * 0.35
         prev = cur
         idx = (idx + 1) % p
@@ -154,9 +165,13 @@ def crinkle(dur, speed_curve, density=1400.0, bright=1.0):
         g = int(rng.uniform(0.0004, 0.004) * SR)
         if h + g >= n:
             continue
-        grain = noise(g) * np.exp(-np.linspace(0, rng.uniform(3, 9), g))
+        dec = np.exp(-np.linspace(0, rng.uniform(3, 9), g))
+        # Paper crackle is many tiny resonant buckles, not white noise: blend a
+        # short ringing ping with the noise grain.
+        ping = np.sin(2 * np.pi * rng.uniform(1800, 6500) * np.arange(g) / SR + rng.uniform(0, 6.28))
+        grain = (0.6 * ping + 0.4 * noise(g)) * dec
         out[h:h + g] += grain * rng.uniform(0.15, 1.0) ** 1.6
-    crack = bp(out, 1600 * bright, min(12000, 8500 * bright), 2)
+    crack = bp(out, 1400 * bright, min(9000, 7000 * bright), 3)
     # Low "sheet bending" body under the grains, slowly breathing.
     wob = 0.6 + 0.4 * np.sin(np.linspace(0, 9 * np.pi, n) + rng.uniform(0, 6)) ** 2
     body = bp(noise(n), 300, 900, 2) * rate ** 1.5 * wob * 0.1
@@ -179,9 +194,14 @@ def snap(gain=1.0, tone=1.0):
         seg = slice(k * zn // 4, (k + 1) * zn // 4)
         zip_[seg] = bp(z, lo, hi, 2)[seg]
     zip_ *= env_ad(zn, 0.1, 3) * 0.55
-    thump = np.sin(2 * np.pi * (95 * tone) * t * (1 - 0.35 * t)) * np.exp(-t * 26) * 0.75
-    out = click * 0.9 + thump
+    # Paper on the mat: a short, high knock (not a sub kick) plus a 30 ms
+    # mid "paper body" burst, so the crease reads as paper, not drum.
+    thump = np.sin(2 * np.pi * (170 * tone) * t * (1 - 0.35 * t)) * np.exp(-t * 60) * 0.2
+    bn = int(0.03 * SR)
+    body = bp(noise(bn), 1200, 3000, 2) * env_ad(bn, 0.04, 6) * 0.4
+    out = click * 1.3 + thump
     out[:zn] += zip_
+    out[:bn] += body
     return out * gain
 
 
@@ -234,16 +254,34 @@ bar = T["barFrames"]
 # Chords per bar (I vi IV V ...) in D: semitone offsets from D3 (50).
 prog = [[0, 7, 16], [0, 7, 16], [9, 16, 21], [5, 12, 21], [7, 14, 23], [0, 7, 16],
         [9, 16, 21], [5, 12, 19], [7, 14, 23], [0, 7, 16], [5, 12, 21], [0, 7, 16, 19]]
-for b, chord in enumerate(prog):
+def tri(f, t):
+    return 2 / np.pi * np.arcsin(np.sin(2 * np.pi * f * t))
+
+
+b = 0
+while b < len(prog):
+    chord = prog[b]
+    run = 1
+    while b + run < len(prog) and prog[b + run] == chord:
+        run += 1  # hold repeated chords instead of re-attacking them
     start = fs(b * bar)
-    length = 80 / FPS + 1.2
+    length = run * 80 / FPS + 1.2
+    level = 0.015 if b < 3 else 0.04
+    n = int(length * SR)
+    t = np.arange(n) / SR
+    e = np.minimum(1, t / 0.9) * np.exp(-np.maximum(0, t - (length - 1.2)) * 2.0)
     for k, st in enumerate(chord):
         f = midi(50 + st)
-        n = int(length * SR)
-        t = np.arange(n) / SR
-        tone = np.sin(2 * np.pi * f * t) * 0.6 + np.sin(2 * np.pi * f * 2.001 * t) * 0.12
-        e = np.minimum(1, t / 0.9) * np.exp(-np.maximum(0, t - 2.0) * 2.0)
-        place(music, hp(lp(tone * e, 1400, 1), 140) * 0.045, start, pan=(k - 1) * 0.35)
+        tone = (tri(f * 0.997, t) + tri(f * 1.003, t)) * 0.5
+        place(music, hp(lp(tone * e, 1200, 2), 180) * level, start, pan=(k - 1) * 0.35)
+    b += run
+
+# Octave bloom for the release (bar 10): the arc lands on the lanterns.
+n = int((80 / FPS + 2.0) * SR)
+t = np.arange(n) / SR
+bloom = sum(tri(midi(m) * d, t) for m in (74, 78, 81) for d in (0.997, 1.003))
+bloom = lp(bloom, 2400, 2) * np.sin(np.pi * np.minimum(1, t / (n / SR))) ** 1.5 * 0.018
+place(music, bloom, fs(10 * bar - 40), pan=0.0)
 
 # Koto ostinato: from bar 1, a gentle figure on the off-beats.
 figure = [4, 2, 3, 1]
@@ -252,15 +290,19 @@ for b in range(1, 11):
         fr = b * bar + k * beat + beat // 2
         if b in (4, 5) and k % 2 == 0:  # thin out under the flurry
             continue
+        if any(abs(fr - f["pullStart"]) < 4 for f in T["folds"]):
+            continue  # never pluck on top of a pull: the paper speaks first
         note = penta(figure[(b + k) % 4], 62)
         place(music, koto(midi(note), 1.6, 0.4) * 0.12, fs(fr), pan=0.25 if k % 2 else -0.25)
 
 # Soft pulse on downbeats once the rhythm starts (bars 3–10): felt, not heard.
 for b in range(3, 11):
+    if b == 9:
+        continue
     n = int(0.5 * SR)
     t = np.arange(n) / SR
     k = np.sin(2 * np.pi * 52 * t * (1 - 0.3 * t)) * np.exp(-t * 9)
-    place(music, k * 0.22, fs(b * bar))
+    place(music, k * 0.07, fs(b * bar))
 
 # Room tone: brown noise, very low, the "close microphone" air.
 brown = np.cumsum(noise(N))
@@ -289,16 +331,27 @@ for e in T["events"]:
             place(sfx, whoosh(dur + 0.05, 260, 1800, flutter=14, gain=0.55), fs(fr), pan=0.1)
             curve *= 0.5
         # Sparse, articulated crackles (ASMR), not a wash of noise.
-        place(sfx, crinkle(dur, curve, density=380 if dur > 1 else 620) * 0.75, fs(fr), pan=0.2 * ((snap_count % 2) * 2 - 1))
+        cr = crinkle(dur, curve, density=380 if dur > 1 else 620) * 0.75
+        # The crinkle travels with the flap: eight overlapping segments swept across.
+        side = (snap_count % 2) * 2 - 1
+        segs = 8
+        L = len(cr)
+        for si in range(segs):
+            a0, a1 = si * L // segs, min(L, (si + 1) * L // segs + 240)
+            w = np.ones(a1 - a0)
+            r = min(240, len(w) // 2)
+            w[:r] = np.linspace(0, 1, r)
+            w[-r:] = np.linspace(1, 0, r)
+            place(sfx, cr[a0:a1] * w, fs(fr) + a0, pan=side * (-0.3 + 0.6 * si / (segs - 1)))
     elif k == "snap":
         big = e["model"] == "tent"
-        g = 1.0 if big else (0.75 if e["model"] == "fox" else 0.6)
+        g = 1.35 if big else (0.75 if e["model"] == "fox" else 0.6)
         if e["kind"] == "flip":
             place(sfx, snap(0.45, 0.8), fs(fr), pan=0.0)
         else:
             place(sfx, snap(g, 1.0 if big else 1.15), fs(fr), pan=0.2 * ((snap_count % 2) * 2 - 1))
         # A reward pluck that climbs with every crease (musical, but a real event).
-        note = penta(3 + snap_count, 62) if not big else 74
+        note = penta(3 + snap_count % 7, 62) if not big else 74
         place(sfx, koto(midi(note), 1.4, 0.7) * (0.22 if big else 0.14), fs(fr), pan=0.1)
         snap_count += 1
     elif k == "unfold":
@@ -331,7 +384,8 @@ for e in T["events"]:
         n = int(0.3 * SR)
         place(sfx, lp(noise(n), 400) * env_ad(n, 0.3, 6) * 0.25, fs(fr), pan=-0.3 + 0.3 * e["i"])
     elif k == "flight":
-        place(sfx, whoosh((e["end"] - fr) / FPS, 250, 2200, gain=0.45), fs(fr), pan=-0.5)
+        place(sfx, touch(0.6), fs(fr), pan=-0.5)
+        place(sfx, whoosh((e["end"] - fr) / FPS, 250, 2200, gain=0.3), fs(fr), pan=-0.5)
     elif k == "beam":
         place(sfx, hum(1.4, 98) * 0.12, fs(fr), pan=0.35)
         place(sfx, bell(midi(93), 1.4) * 0.12, fs(fr), pan=0.35)
@@ -341,7 +395,7 @@ for e in T["events"]:
         place(sfx, koto(midi(penta(2 + e["i"], 62)), 1.2, 0.5) * 0.09, fs(fr), pan=-0.6 + 0.24 * e["i"])
     elif k == "release":
         for i in range(9):
-            place(sfx, bell(midi(81 + PENTA[i % 5] + 12 * (i // 5)), 2.0) * 0.07, fs(fr + i * 6), pan=np.sin(i * 1.7) * 0.6)
+            place(sfx, bell(midi(81 + PENTA[i % 5] + 12 * (i // 5)), 2.0) * 0.12, fs(fr + i * 6), pan=np.sin(i * 1.7) * 0.6)
         place(sfx, whoosh(2.4, 150, 900, gain=0.2), fs(fr))
     elif k == "wipe":
         place(sfx, whoosh((e["end"] - fr) / FPS + 0.2, 300, 2400, gain=0.4), fs(fr))
@@ -363,20 +417,28 @@ def room(seconds, decay, tone):
     return ir / np.sum(np.abs(ir)) * 40
 
 
-ir_m = room(2.6, 2.4, 5000)
-ir_s = room(0.9, 7.0, 7000)
-for bus, ir, wet in ((music, ir_m, 0.35), (sfx, ir_s, 0.18)):
+irs_m = (room(2.6, 2.4, 5000), room(2.6, 2.4, 5000))
+irs_s = (room(0.9, 7.0, 7000), room(0.9, 7.0, 7000))
+for bus, irs, wet in ((music, irs_m, 0.35), (sfx, irs_s, 0.18)):
     for ch in range(2):
-        w = fftconvolve(bus[ch], ir)[:N]
+        w = fftconvolve(bus[ch], irs[ch])[:N]
         bus[ch] = bus[ch] * (1 - wet) + w * wet * 0.5
 
 # Gentle fades so the first and last samples are clean.
 fade_in = int(0.02 * SR)
-fade_out = int(0.6 * SR)
+fade_out = int(1.5 * SR)
 for bus in (music, sfx):
     bus[:, :fade_in] *= np.linspace(0, 1, fade_in)
-    bus[:, -fade_out:] *= np.linspace(1, 0, fade_out) ** 2
+    bus[:, -fade_out:] *= 0.5 + 0.5 * np.cos(np.linspace(0, np.pi, fade_out))
 
+# Duck the score 8 dB under every fold (pull to just after the crease).
+duck = np.ones(N)
+ramp = int(0.03 * SR)
+for f in T["folds"]:
+    a, b2 = fs(f["pullStart"] - 3), min(N, fs(f["snap"] + 6))
+    duck[a:b2] = np.minimum(duck[a:b2], 10 ** (-8 / 20))
+duck = np.convolve(duck, np.ones(ramp) / ramp, mode="same")
+music *= duck
 music *= 1.5  # sits ~7 LU under the paper sounds
 mix = music + sfx
 
