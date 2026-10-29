@@ -186,7 +186,9 @@ function foldState(model: string, n: number): { k: number; theta: number; fold: 
     const f = fl[i];
     if (n < f.pullStart) return { k: i, theta: 0, fold: f, u: 0 };
     if (n < f.snap) {
-      const u = range(n, f.pullStart, f.snap);
+      // Turn-overs sample half a frame off their midpoint, so no frame ever
+      // lands exactly edge-on (an invisible sheet).
+      const u = range(n + (f.kind === 'flip' ? 0.5 : 0), f.pullStart, f.snap);
       const target = seqs[model].snaps[i].prep.target;
       return { k: i, theta: target * inOut(u), fold: f, u };
     }
@@ -493,7 +495,7 @@ function updateEnd(n: number): void {
   if (!vis) return;
   const e = n - 880;
   endParts.forEach((el, i) => {
-    const k = range(e, 2 + i * 5, 18 + i * 5);
+    const k = range(e, 1 + i * 3, 12 + i * 3); // complete by ~0.75 s: a longer read of the URL
     el.style.opacity = String(clamp01(k * 2));
     if (i === 0) {
       // The mark unfolds from a flat crease, overshooting a touch.
@@ -584,10 +586,10 @@ function step(n: number): void {
   updateSparks(n);
   decayGlow();
 
-  shelf.visible = n >= 716 && n < 800;
+  shelf.visible = n >= 720 && n < 800;
   // Clear the desk for the keepsakes and the wide release shot.
-  board.parent!.visible = n < 716;
-  stageAnchor.visible = n < 716;
+  board.parent!.visible = n < 720;
+  stageAnchor.visible = n < 720;
   hand.setOpacity(0);
 
   // ----- hook + reveal: the tent sheet -----------------------------------
@@ -665,7 +667,7 @@ function step(n: number): void {
         const M = T.morphs[0];
         const ku = range(n, M.unfold[0], M.unfold[1]);
         const fox = seqs.fox;
-        const kf = range(n, M.flip[0], M.flip[1]);
+        const kf = range(n + 0.5, M.flip[0], M.flip[1]); // never exactly edge-on
         const phi = Math.PI * inOut(kf);
         const spin = (Math.PI / 4) * inOut(kf);
         if (phi <= Math.PI / 2) {
@@ -742,7 +744,7 @@ function step(n: number): void {
     } else {
       // Unfold the fox flat, then turn over into the swan's sheet.
       const ku = range(n, M.unfold[0], M.unfold[1]);
-      const kf = range(n, M.flip[0], M.flip[1]);
+      const kf = range(n + 0.5, M.flip[0], M.flip[1]); // never exactly edge-on
       const phi = Math.PI * inOut(kf);
       const spin = (Math.PI / 4) * inOut(kf);
       const nSteps = fox.snaps.length;
@@ -874,13 +876,13 @@ function shoot(n: number): void {
     // exactly where the lake shot picks up.
     const up = inOut(range(n, 400, 418));
     const dn = inOut(range(n, 448, 480));
-    setCam(overhead(mix(mix(0.39, 0.47, up), 0.36, dn), 0, 0), BOARD_C, mix(38, 36, dn), n, 0.5);
+    setCam(overhead(mix(mix(0.39, 0.47, up), 0.42, dn), 0, 0), BOARD_C, mix(38, 36, dn), n, 0.5);
   } else if (n < 560) {
     // Rise and turn to watch the swan glide into the lake diorama.
     const k = inOut(range(n, 482, 552));
-    const pos = lerpV(overhead(0.36), V(0.09, -0.27, -0.36), k);
+    const pos = lerpV(overhead(0.42), V(0.075, -0.29, -0.43), k);
     const look = lerpV(BOARD_C, V(-0.03, -0.445, -0.84), k);
-    setCam(pos, look, mix(36, 42, k), n);
+    setCam(pos, look, mix(36, 38, k), n);
   } else if (n < 640) {
     const k = range(n, 560, 640);
     setCam(V(-0.2 + k * 0.05, -0.335, -0.52), V(0.03 + k * 0.02, -0.465, -0.83), 40, n);

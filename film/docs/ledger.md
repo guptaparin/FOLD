@@ -19,3 +19,6 @@
 | 15 | **H.264 CRF 16, preset slow; audio -16 LUFS, ≤ -1 dBTP after AAC** | At -14 the limiter took 5–14 dB off the snaps; -16 with a rebuilt snap keeps ASMR transients (limiter takes ≤ 3 dB off any crease, measured). Platforms turn louder files down, not quieter ones up much, so -16 costs little | -14 LUFS with heavy limiting |
 | 16 | **Crinkle = resonant pings + noise, panned with the flap; mono-safe panning; decorrelated room** | Sound critic: crinkle read as static, small ITDs comb-filtered in mono | White-noise grains, fixed pan |
 | 17 | **Short capped wrist** for the hand | A long forearm rose toward the overhead lens and hid the fox; tracked hands stop at the wrist anyway | Long forearm; open tube |
+| 18 | **Turn-overs sampled half a frame off 90°** | Director critic: the sheet vanished edge-on for a frame at 233/395/426 | Motion blur (costly in this renderer) |
+| 19 | **Swan framed with headroom and a closer lake push-in; caption moved left of the moon, on screen 2.3 s** | Director critic: swan didn't read, caption under 1.8 s and fighting the moon | — |
+| 20 | **End card builds in 0.75 s, URL held ~1.9 s; dioramas switch exactly on the 720 cut** | Director critic: 1.6 s URL hold; four stray frames before the shelf cut | — |
