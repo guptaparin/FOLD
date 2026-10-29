@@ -52,9 +52,25 @@ export class Opener {
     const ax: V3 = [B.pos[0] - A.pos[0], B.pos[1] - A.pos[1], B.pos[2] - A.pos[2]];
     const len = Math.hypot(ax[0], ax[1], ax[2]) || 1;
     const axis: V3 = [ax[0] / len, ax[1] / len, ax[2] / len];
-    const ns: V3 = [A.facet.m[8], A.facet.m[9], A.facet.m[10]];
     const moving = this.sheet.facets.filter((f) => f.hist & bit);
     if (!moving.length) return null;
+    // Which side of the body does the flap physically lie on? Compare the
+    // stacked heights of the flap and the body it was folded against. (A
+    // turn-over step can put a flap underneath, so paper normals can't tell.)
+    const zOf = (f: Facet): number => {
+      let z = 0;
+      for (const p of f.poly) z += apply(f.m, [p[0], p[1], 0])[2];
+      return z / f.poly.length;
+    };
+    const planar = (f: Facet): boolean => Math.abs(f.m[10]) > 0.999;
+    const mv = moving.filter(planar);
+    const st = this.sheet.facets.filter((f) => !(f.hist & bit) && planar(f));
+    let ns: V3 = [A.facet.m[8], A.facet.m[9], A.facet.m[10]];
+    if (mv.length && st.length) {
+      const mz = mv.reduce((a, f) => a + zOf(f), 0) / mv.length;
+      const sz = st.reduce((a, f) => a + zOf(f), 0) / st.length;
+      if (Math.abs(mz - sz) > 1e-6) ns = [0, 0, mz > sz ? 1 : -1];
+    }
     // Centroid of the moving flap.
     let cx = 0;
     let cy = 0;

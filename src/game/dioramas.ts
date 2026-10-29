@@ -551,7 +551,9 @@ export class FoxStage extends Diorama {
       );
       tree.add(trunk);
       const back = i < 6;
-      tree.position.set(-0.22 + (i / 8) * 0.44 + (r() - 0.5) * 0.03, 0.028, back ? -0.1 + r() * 0.04 : 0.11);
+      // Back row spans the stage; the front row stays left so the fox's path stays visible.
+      const x = back ? -0.22 + (i / 5) * 0.44 + (r() - 0.5) * 0.03 : -0.25 + (i - 6) * 0.035;
+      tree.position.set(x, 0.028, back ? -0.1 + r() * 0.04 : 0.1 + (i - 6) * 0.01);
       tree.rotation.y = (r() - 0.5) * 0.3;
       this.root.add(tree);
     }
@@ -738,7 +740,10 @@ export class GardenStage extends Diorama {
         (d.material as SpriteMaterial).opacity = t > 3.8 && t < 5.3 ? 0.9 : 0;
       });
     } else {
-      creature.rotation.z *= 1 - Math.min(1, dt * 3);
+      // Set the cup down beside the flower.
+      const k = ease((t - 5.5) / 1.2);
+      creature.rotation.z = -1.1 * (1 - k);
+      creature.position.set(above.x - 0.045 * k, above.y + (this.landing.y - above.y) * k, above.z + 0.03 * k);
       this.drops.forEach((d) => ((d.material as SpriteMaterial).opacity = 0));
       this.solved = true;
     }
@@ -847,11 +852,11 @@ export class CanyonStage extends Diorama {
     roof.position.z = 0.001;
     tower.add(body, lamp, roof);
     this.beam = new Mesh(
-      new CylinderGeometry(0.004, 0.05, 0.4, 16, 1, true),
+      new CylinderGeometry(0.004, 0.045, 0.26, 16, 1, true),
       new MeshBasicMaterial({ color: 0xfff0b8, transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, blending: AdditiveBlending }),
     );
     this.beam.rotation.z = Math.PI / 2;
-    this.beam.position.set(-0.2, 0, 0);
+    this.beam.position.set(-0.13, 0, 0);
     const beamPivot = new Group();
     beamPivot.position.y = 0.107;
     beamPivot.add(this.beam);
@@ -970,8 +975,9 @@ export class LakeStage extends Diorama {
   }
 
   standQuaternion(out: Quaternion): Quaternion {
-    // Swan floats flat: fold normal points up, head (fold +Y) toward stage +X.
-    return basisQuat(Z, Y, Y, X, out);
+    // Swan floats flat: fold normal points up; it swims toward the player's
+    // right so the raised neck is seen from the side, not edge-on.
+    return basisQuat(Z, Y, Y, new Vector3(0.75, 0, 0.66), out);
   }
 
   override reset(): void {
