@@ -43,6 +43,11 @@ export async function autopilot(api: FoldApi, chapters: number[], launch: () => 
   const r = remote();
   if (!r) return 'Autopilot needs the emulator: run `npm run dev` and use the dev URL.';
 
+  // Clear the landing page so it doesn't cover the recording.
+  const landing = document.getElementById('landing');
+  if (landing) landing.style.display = 'none';
+  const pill = document.getElementById('vr-pill');
+  if (pill) pill.style.display = 'none';
   launch();
   await sleep(1500);
   try {

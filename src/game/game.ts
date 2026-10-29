@@ -335,6 +335,16 @@ export class FoldGame extends createSystem({}) {
       },
     };
 
+    // In the IWSDK dev window the app runs inside a frame; mirror the API onto
+    // the top window so `fold.autopilot()` works from the default console.
+    try {
+      if (window.top && window.top !== window) {
+        (window.top as unknown as { fold: unknown }).fold = (window as unknown as { fold: unknown }).fold;
+      }
+    } catch {
+      // Cross-origin parent: nothing to mirror.
+    }
+
     this.showMenu();
   }
 
