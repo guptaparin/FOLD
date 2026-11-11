@@ -327,6 +327,13 @@ export class FoldGame extends createSystem({}) {
         this.world.renderer.setPixelRatio(on ? 0.75 : window.devicePixelRatio);
         if (!this.world.renderer.xr.isPresenting) this.world.renderer.xr.setFramebufferScaleFactor(on ? 0.15 : 1);
       },
+      /** Capture hook: render quality for recording on a software GPU. */
+      quality: (opts: { shadows?: boolean; pixelRatio?: number; xrScale?: number }) => {
+        const r = this.world.renderer;
+        if (opts.shadows !== undefined) r.shadowMap.enabled = opts.shadows;
+        if (opts.pixelRatio !== undefined) r.setPixelRatio(opts.pixelRatio);
+        if (opts.xrScale !== undefined && !r.xr.isPresenting) r.xr.setFramebufferScaleFactor(opts.xrScale);
+      },
       /** Test hook: screen position of a world point (handle or target). */
       screenOf: (which: 'handle' | 'target') => this.screenOf(which),
       reset: () => {
